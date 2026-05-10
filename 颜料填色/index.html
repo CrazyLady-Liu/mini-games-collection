@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>颜料填色游戏</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>颜料填色游戏</h1>
+        <div class="game-container">
+            <div class="controls">
+                <div class="section">
+                    <h3>颜色选择</h3>
+                    <div class="color-panel" id="colorPanel"></div>
+                </div>
+                <div class="section">
+                    <h3>工具</h3>
+                    <button id="brushBtn" class="tool-btn active">画笔</button>
+                    <button id="eraserBtn" class="tool-btn">橡皮擦</button>
+                </div>
+                <div class="section">
+                    <h3>操作</h3>
+                    <button id="resetBtn">重置</button>
+                </div>
+                <div class="section">
+                    <h3>状态</h3>
+                    <p id="statusText">请选择颜色开始填色</p>
+                </div>
+            </div>
+            <div class="canvas-container">
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
