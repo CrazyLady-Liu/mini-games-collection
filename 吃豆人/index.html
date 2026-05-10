@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>吃豆人</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
+        #game-container {
+            position: relative;
+        }
+        #score {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            color: #ff0;
+            text-align: center;
+            display: none;
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            background: #ff0;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="score">分数: 0</div>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="game-over">
+            <div id="game-message"></div>
+            <button onclick="restartGame()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        const TILE_SIZE = 20;
+        const COLS = 28;
+        const ROWS = 31;
+
+        let score = 0;
+        let gameState = 'running';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = COLS * TILE_SIZE;
+        canvas.height = ROWS * TILE_SIZE;
+
+        const MAP = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+            [1,3,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,3,1],
+            [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1],
+            [1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1],
+            [1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
+            [1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
+            [0,0,0,0,0,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,0,0,0,0,0],
+            [0,0,0,0,0,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,0,0,0,0,0],
+            [0,0,0,0,0,1,2,1,1,0,1,1,1,4,4,1,1,1,0,1,1,2,1,0,0,0,0,0],
+            [1,1,1,1,1,1,2,1,1,0,1,4,4,4,4,4,4,1,0,1,1,2,1,1,1,1,1,1],
+            [0,0,0,0,0,0,2,0,0,0,1,4,4,4,4,4,4,1,0,0,0,2,0,0,0,0,0,0],
+            [1,1,1,1,1,1,2,1,1,0,1,4,4,4,4,4,4,1,0,1,1,2,1,1,1,1,1,1],
+            [0,0,0,0,0,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,0,0,0,0,0],
+            [0,0,0,0,0,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,0,0,0,0,0],
+            [0,0,0,0,0,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,0,0,0,0,0],
+            [1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+            [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+            [1,3,2,2,1,1,2,2,2,2,2,2,2,0,0,2,2,2,2,2,2,2,1,1,2,2,3,1],
+            [1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1],
+            [1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1],
+            [1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
+            [1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1],
+            [1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        let map = [];
+        let pacman = {};
+        let ghosts = [];
+        let dots = [];
+        let powerDots = [];
+        let powerMode = false;
+        let powerModeTimer = 0;
+        let keys = {};
+
+        function initGame() {
+            score = 0;
+            gameState = 'running';
+            powerMode = false;
+            powerModeTimer = 0;
+            map = MAP.map(row => [...row]);
+            dots = [];
+            powerDots = [];
+
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    if (map[y][x] === 2) {
+                        dots.push({ x, y });
+                    } else if (map[y][x] === 3) {
+                        powerDots.push({ x, y });
+                    }
+                }
+            }
+
+            pacman = {
+                x: 14, y: 23,
+                dx: 0, dy: 0,
+                direction: 0, mouthOpen: true
+            };
+
+            const ghostColors = ['#ff0000', '#ffb8ff', '#00ffff', '#ffb852'];
+            ghosts = [
+                { x: 13, y: 14, dx: -1, dy: 0, color: ghostColors[0], scared: false },
+                { x: 14, y: 14, dx: 1, dy: 0, color: ghostColors[1], scared: false },
+                { x: 13, y: 12, dx: 0, dy: -1, color: ghostColors[2], scared: false },
+                { x: 14, y: 12, dx: 0, dy: 1, color: ghostColors[3], scared: false }
+            ];
+
+            document.getElementById('score').textContent = '分数: ' + score;
+            document.getElementById('game-over').style.display = 'none';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ']) {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        function isWall(x, y) {
+            if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return false;
+            return map[y][x] === 1;
+        }
+
+        function updatePacman() {
+            let newDx = pacman.dx;
+            let newDy = pacman.dy;
+
+            if (keys['ArrowUp']) { newDx = 0; newDy = -1; }
+            if (keys['ArrowDown']) { newDx = 0; newDy = 1; }
+            if (keys['ArrowLeft']) { newDx = -1; newDy = 0; }
+            if (keys['ArrowRight']) { newDx = 1; newDy = 0; }
+
+            const nextX = pacman.x + newDx;
+            const nextY = pacman.y + newDy;
+
+            if (!isWall(nextX, nextY)) {
+                pacman.dx = newDx;
+                pacman.dy = newDy;
+            }
+
+            const moveX = pacman.x + pacman.dx;
+            const moveY = pacman.y + pacman.dy;
+
+            if (!isWall(moveX, moveY)) {
+                pacman.x = moveX;
+                pacman.y = moveY;
+            }
+
+            if (pacman.x < 0) pacman.x = COLS - 1;
+            if (pacman.x >= COLS) pacman.x = 0;
+
+            pacman.mouthOpen = !pacman.mouthOpen;
+
+            if (pacman.dx === 1) pacman.direction = 0;
+            if (pacman.dx === -1) pacman.direction = 1;
+            if (pacman.dy === -1) pacman.direction = 2;
+            if (pacman.dy === 1) pacman.direction = 3;
+        }
+
+        function updateGhosts() {
+            ghosts.forEach(ghost => {
+                ghost.scared = powerMode;
+
+                const directions = [
+                    { dx: 0, dy: -1 },
+                    { dx: 0, dy: 1 },
+                    { dx: -1, dy: 0 },
+                    { dx: 1, dy: 0 }
+                ];
+
+                const validDirs = directions.filter(d => !isWall(ghost.x + d.dx, ghost.y + d.dy));
+                const noBackDirs = validDirs.filter(d => !(d.dx === -ghost.dx && d.dy === -ghost.dy));
+                const options = noBackDirs.length > 0 ? noBackDirs : validDirs;
+
+                let bestDir = options[0];
+                let bestDist = Infinity;
+
+                options.forEach(dir => {
+                    const nx = ghost.x + dir.dx;
+                    const ny = ghost.y + dir.dy;
+                    const dist = Math.abs(nx - pacman.x) + Math.abs(ny - pacman.y);
+                    if (ghost.scared) {
+                        if (dist > bestDist) {
+                            bestDist = dist;
+                            bestDir = dir;
+                        }
+                    } else {
+                        if (dist < bestDist) {
+                            bestDist = dist;
+                            bestDir = dir;
+                        }
+                    }
+                });
+
+                if (Math.random() < 0.2) {
+                    bestDir = options[Math.floor(Math.random() * options.length)];
+                }
+
+                ghost.dx = bestDir.dx;
+                ghost.dy = bestDir.dy;
+                ghost.x += ghost.dx;
+                ghost.y += ghost.dy;
+
+                if (ghost.x < 0) ghost.x = COLS - 1;
+                if (ghost.x >= COLS) ghost.x = 0;
+            });
+        }
+
+        function checkCollisions() {
+            dots = dots.filter(dot => {
+                if (dot.x === pacman.x && dot.y === pacman.y) {
+                    score += 10;
+                    return false;
+                }
+                return true;
+            });
+
+            powerDots = powerDots.filter(dot => {
+                if (dot.x === pacman.x && dot.y === pacman.y) {
+                    score += 50;
+                    powerMode = true;
+                    powerModeTimer = 300;
+                    return false;
+                }
+                return true;
+            });
+
+            ghosts.forEach(ghost => {
+                if (ghost.x === pacman.x && ghost.y === pacman.y) {
+                    if (ghost.scared) {
+                        score += 200;
+                        ghost.x = 14;
+                        ghost.y = 14;
+                    } else {
+                        gameState = 'lost';
+                    }
+                }
+            });
+
+            if (dots.length === 0 && powerDots.length === 0) {
+                gameState = 'won';
+            }
+
+            document.getElementById('score').textContent = '分数: ' + score;
+        }
+
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    if (map[y][x] === 1) {
+                        ctx.fillStyle = '#0000ff';
+                        ctx.fillRect(x * TILE_SIZE + 1, y * TILE_SIZE + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+                    }
+                }
+            }
+
+            dots.forEach(dot => {
+                ctx.fillStyle = '#ffb897';
+                ctx.beginPath();
+                ctx.arc(dot.x * TILE_SIZE + TILE_SIZE / 2, dot.y * TILE_SIZE + TILE_SIZE / 2, 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            powerDots.forEach(dot => {
+                ctx.fillStyle = '#ffb897';
+                ctx.beginPath();
+                ctx.arc(dot.x * TILE_SIZE + TILE_SIZE / 2, dot.y * TILE_SIZE + TILE_SIZE / 2, 6, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            const px = pacman.x * TILE_SIZE + TILE_SIZE / 2;
+            const py = pacman.y * TILE_SIZE + TILE_SIZE / 2;
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            const mouthAngle = pacman.mouthOpen ? 0.2 : 0;
+            const startAngle = pacman.direction * Math.PI / 2 + mouthAngle;
+            const endAngle = pacman.direction * Math.PI / 2 + (2 - mouthAngle) * Math.PI;
+            ctx.arc(px, py, TILE_SIZE / 2 - 2, startAngle, endAngle);
+            ctx.lineTo(px, py);
+            ctx.fill();
+
+            ghosts.forEach(ghost => {
+                const gx = ghost.x * TILE_SIZE + TILE_SIZE / 2;
+                const gy = ghost.y * TILE_SIZE + TILE_SIZE / 2;
+                ctx.fillStyle = ghost.scared ? '#0000ff' : ghost.color;
+                ctx.beginPath();
+                ctx.arc(gx, gy, TILE_SIZE / 2 - 2, Math.PI, 0);
+                ctx.lineTo(gx + TILE_SIZE / 2 - 2, gy + TILE_SIZE / 2 - 2);
+                for (let i = 0; i < 3; i++) {
+                    ctx.lineTo(gx + TILE_SIZE / 2 - 2 - i * (TILE_SIZE - 4) / 3 - (TILE_SIZE - 4) / 6, gy + TILE_SIZE / 2 - 6);
+                    ctx.lineTo(gx + TILE_SIZE / 2 - 2 - (i + 1) * (TILE_SIZE - 4) / 3, gy + TILE_SIZE / 2 - 2);
+                }
+                ctx.fill();
+                if (!ghost.scared) {
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(gx - 4, gy - 2, 4, 0, Math.PI * 2);
+                    ctx.arc(gx + 4, gy - 2, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#00f';
+                    ctx.beginPath();
+                    ctx.arc(gx - 4 + ghost.dx * 2, gy - 2 + ghost.dy * 2, 2, 0, Math.PI * 2);
+                    ctx.arc(gx + 4 + ghost.dx * 2, gy - 2 + ghost.dy * 2, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+
+        function gameLoop() {
+            if (gameState === 'running') {
+                updatePacman();
+                updateGhosts();
+                checkCollisions();
+                if (powerMode) {
+                    powerModeTimer--;
+                    if (powerModeTimer <= 0) {
+                        powerMode = false;
+                    }
+                }
+            } else {
+                const message = gameState === 'won' ? '你赢了！' : '游戏结束！';
+                document.getElementById('game-message').textContent = message;
+                document.getElementById('game-over').style.display = 'block';
+            }
+            draw();
+            setTimeout(gameLoop, 150);
+        }
+
+        function restartGame() {
+            initGame();
+        }
+
+        initGame();
+        gameLoop();
+    </script>
+</body>
+</html>
