@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>接云朵 - 重力躲避</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <div class="game-header">
+            <div class="score-display">分数: <span id="score">0</span></div>
+            <div class="combo-display">连击: <span id="combo">0</span>x</div>
+            <div class="lives-display" id="livesDisplay">
+                <span class="heart">❤️</span>
+                <span class="heart">❤️</span>
+                <span class="heart">❤️</span>
+            </div>
+            <div class="shield-display" id="shieldDisplay" style="display: none;">🛡️</div>
+        </div>
+        <div class="milestone-display" id="milestoneDisplay">下一目标: 500分</div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="floating-text-container" id="floatingTextContainer"></div>
+        <div class="game-overlay" id="gameOverlay">
+            <h1 id="overlayTitle">接云朵</h1>
+            <p id="overlayMessage">点击开始游戏</p>
+            <button id="startButton">开始</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

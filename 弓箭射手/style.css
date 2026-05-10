@@ -1,0 +1,243 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-container {
+    position: relative;
+    background: #f0f0f0;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.ui-panel {
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 20px;
+    background: #333;
+    color: white;
+    font-size: 18px;
+}
+
+.ui-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ui-item .label {
+    color: #aaa;
+}
+
+.ui-item .value {
+    font-weight: bold;
+    font-size: 22px;
+    color: #FFD700;
+}
+
+#gameCanvas {
+    display: block;
+    background: linear-gradient(to bottom, #87CEEB 0%, #E0F7FA 100%);
+    cursor: default;
+}
+
+.controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background: #444;
+    gap: 15px;
+}
+
+.angle-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    white-space: nowrap;
+}
+
+.angle-control .label {
+    color: #aaa;
+}
+
+.angle-control .value {
+    color: #FFD700;
+    font-weight: bold;
+    min-width: 45px;
+}
+
+.slider {
+    width: 150px;
+    height: 8px;
+    -webkit-appearance: none;
+    background: #ddd;
+    border-radius: 4px;
+    outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #4CAF50;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #4CAF50;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.power-bar {
+    flex: 1;
+    position: relative;
+    height: 30px;
+    background: #ddd;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+#shootBtn {
+    padding: 10px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    background: linear-gradient(145deg, #FF5722, #E64A19);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    user-select: none;
+}
+
+#shootBtn:hover {
+    background: linear-gradient(145deg, #FF6B35, #F4511E);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+#shootBtn:active,
+#shootBtn.charging {
+    background: linear-gradient(145deg, #D84315, #BF360C);
+    transform: translateY(2px) scale(0.98);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    animation: pulse 0.3s infinite alternate;
+}
+
+@keyframes pulse {
+    from {
+        box-shadow: 0 0 5px rgba(255, 87, 34, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    to {
+        box-shadow: 0 0 15px rgba(255, 87, 34, 0.8), 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+}
+
+.power-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, #4CAF50, #FFD700, #FF5722);
+    transition: width 0.1s;
+    border-radius: 15px;
+}
+
+.power-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #333;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px white;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    padding: 15px;
+    background: #333;
+}
+
+.controls button {
+    padding: 10px 30px;
+    font-size: 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.controls button:hover {
+    background: #45a049;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.message {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.message h2 {
+    margin-bottom: 20px;
+    font-size: 32px;
+}
+
+.message p {
+    margin-bottom: 30px;
+    font-size: 18px;
+    color: #666;
+}
+
+.message button {
+    padding: 12px 40px;
+    font-size: 18px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.message button:hover {
+    background: #45a049;
+}
