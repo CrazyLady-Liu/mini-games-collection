@@ -12,21 +12,100 @@
         <div class="game-container">
             <div class="controls">
                 <div class="section">
-                    <h3>颜色选择</h3>
+                    <h3>关卡选择</h3>
+                    <div class="level-buttons">
+                        <button class="level-btn active" data-level="0">🏠 房屋</button>
+                        <button class="level-btn" data-level="1">🐱 猫咪</button>
+                        <button class="level-btn" data-level="2">🌻 花朵</button>
+                        <button class="level-btn" data-level="3">🔷 几何</button>
+                    </div>
+                </div>
+                <div class="section">
+                    <h3>当前颜色</h3>
+                    <div class="current-color-display" id="currentColorDisplay">
+                        <div class="color-preview" id="colorPreview"></div>
+                        <span class="color-hex" id="colorHex">#FF6B6B</span>
+                    </div>
+                </div>
+                <div class="section">
+                    <h3>常用颜色</h3>
                     <div class="color-panel" id="colorPanel"></div>
                 </div>
                 <div class="section">
+                    <h3>最近使用</h3>
+                    <div class="recent-colors" id="recentColors"></div>
+                </div>
+                <div class="section">
+                    <h3>自定义颜色</h3>
+                    <div class="custom-color-section">
+                        <input type="color" id="colorPicker" value="#FF6B6B" class="color-picker-input">
+                        <div class="color-input-wrapper">
+                            <span class="hash">#</span>
+                            <input type="text" id="colorInput" value="FF6B66" maxlength="6" placeholder="HEX">
+                        </div>
+                    </div>
+                </div>
+                <div class="section">
+                    <h3>工具设置</h3>
+                    <div class="settings-group">
+                        <div class="setting-row">
+                            <div class="setting-label-group">
+                                <span class="setting-icon">🪟</span>
+                                <label>透明度</label>
+                            </div>
+                            <div class="setting-control">
+                                <input type="range" id="opacitySlider" min="10" max="100" value="100" class="custom-slider">
+                                <span class="setting-value" id="opacityValue">100%</span>
+                            </div>
+                        </div>
+                        <div class="opacity-presets">
+                            <button class="opacity-preset" data-opacity="25">25%</button>
+                            <button class="opacity-preset" data-opacity="50">50%</button>
+                            <button class="opacity-preset active" data-opacity="100">100%</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="section">
                     <h3>工具</h3>
-                    <button id="brushBtn" class="tool-btn active">画笔</button>
-                    <button id="eraserBtn" class="tool-btn">橡皮擦</button>
+                    <div class="tool-buttons">
+                        <button id="brushBtn" class="tool-btn active">
+                            <span class="tool-icon">🎨</span>
+                            <span class="tool-name">画笔</span>
+                        </button>
+                        <button id="eraserBtn" class="tool-btn">
+                            <span class="tool-icon">🧹</span>
+                            <span class="tool-name">橡皮擦</span>
+                        </button>
+                        <button id="fillBtn" class="tool-btn">
+                            <span class="tool-icon">🪣</span>
+                            <span class="tool-name">填充</span>
+                        </button>
+                        <button id="pickerBtn" class="tool-btn">
+                            <span class="tool-icon">🎯</span>
+                            <span class="tool-name">取色</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="section">
                     <h3>操作</h3>
-                    <button id="resetBtn">重置</button>
+                    <div class="action-buttons">
+                        <button id="undoBtn" class="action-btn" disabled>
+                            <span class="btn-icon">↶</span>
+                            <span class="btn-text">撤销</span>
+                        </button>
+                        <button id="redoBtn" class="action-btn" disabled>
+                            <span class="btn-icon">↷</span>
+                            <span class="btn-text">重做</span>
+                        </button>
+                        <button id="resetBtn" class="action-btn danger">
+                            <span class="btn-icon">🔄</span>
+                            <span class="btn-text">重置</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="section">
                     <h3>状态</h3>
-                    <p id="statusText">请选择颜色开始填色</p>
+                    <p id="statusText" class="status-text">请选择颜色开始填色</p>
                 </div>
             </div>
             <div class="canvas-container">
