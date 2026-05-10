@@ -86,15 +86,15 @@
             [1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
             [1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
             [0,0,0,0,0,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,0,0,0,0,0],
-            [0,0,0,0,0,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,0,0,0,0,0],
-            [0,0,0,0,0,1,2,1,1,0,1,1,1,4,4,1,1,1,0,1,1,2,1,0,0,0,0,0],
-            [1,1,1,1,1,1,2,1,1,0,1,4,4,4,4,4,4,1,0,1,1,2,1,1,1,1,1,1],
-            [0,0,0,0,0,0,2,0,0,0,1,4,4,4,4,4,4,1,0,0,0,2,0,0,0,0,0,0],
-            [1,1,1,1,1,1,2,1,1,0,1,4,4,4,4,4,4,1,0,1,1,2,1,1,1,1,1,1],
-            [0,0,0,0,0,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,0,0,0,0,0],
-            [0,0,0,0,0,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,0,0,0,0,0],
-            [0,0,0,0,0,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,0,0,0,0,0],
-            [1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
+            [0,0,0,0,0,1,2,1,1,2,2,2,2,2,2,2,2,2,2,1,1,2,1,0,0,0,0,0],
+            [0,0,0,0,0,1,2,1,1,2,1,1,1,4,4,1,1,1,2,1,1,2,1,0,0,0,0,0],
+            [1,1,1,1,1,1,2,1,1,2,1,4,4,4,4,4,4,1,2,1,1,2,1,1,1,1,1,1],
+            [0,0,0,0,0,0,2,2,2,2,1,4,4,4,4,4,4,1,2,2,2,2,0,0,0,0,0,0],
+            [1,1,1,1,1,1,2,1,1,2,1,4,4,4,4,4,4,1,2,1,1,2,1,1,1,1,1,1],
+            [0,0,0,0,0,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,0,0,0,0,0],
+            [0,0,0,0,0,1,2,1,1,2,2,2,2,2,2,2,2,2,2,1,1,2,1,0,0,0,0,0],
+            [0,0,0,0,0,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,0,0,0,0,0],
+            [1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1],
             [1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
             [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
             [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
@@ -117,6 +117,15 @@
         let powerModeTimer = 0;
         let keys = {};
 
+        // 幽灵配置（保存用于重置）
+        const ghostConfigs = [
+            { x: 13, y: 14, color: '#ff0000', name: 'Blinky', behavior: 0 }, // 追踪者
+            { x: 14, y: 14, color: '#ffb8ff', name: 'Pinky', behavior: 1 },  // 伏击者
+            { x: 13, y: 12, color: '#00ffff', name: 'Inky', behavior: 2 },   // 随机者
+            { x: 14, y: 12, color: '#ffb852', name: 'Clyde', behavior: 3 }   // 慢行者
+        ];
+
+        // 幽灵行为模式：0-追踪者 1-伏击者 2-随机者 3-慢行者
         function initGame() {
             score = 0;
             gameState = 'running';
@@ -142,13 +151,18 @@
                 direction: 0, mouthOpen: true
             };
 
-            const ghostColors = ['#ff0000', '#ffb8ff', '#00ffff', '#ffb852'];
-            ghosts = [
-                { x: 13, y: 14, dx: -1, dy: 0, color: ghostColors[0], scared: false },
-                { x: 14, y: 14, dx: 1, dy: 0, color: ghostColors[1], scared: false },
-                { x: 13, y: 12, dx: 0, dy: -1, color: ghostColors[2], scared: false },
-                { x: 14, y: 12, dx: 0, dy: 1, color: ghostColors[3], scared: false }
-            ];
+            ghosts = ghostConfigs.map(config => ({
+                x: config.x,
+                y: config.y,
+                dx: 0,
+                dy: -1,
+                color: config.color,
+                name: config.name,
+                behavior: config.behavior,
+                scared: false,
+                homeX: config.x,
+                homeY: config.y
+            }));
 
             document.getElementById('score').textContent = '分数: ' + score;
             document.getElementById('game-over').style.display = 'none';
@@ -207,8 +221,13 @@
         }
 
         function updateGhosts() {
-            ghosts.forEach(ghost => {
+            ghosts.forEach((ghost, index) => {
                 ghost.scared = powerMode;
+                
+                // 慢行者每2帧才移动一次
+                if (ghost.behavior === 3 && index % 2 === 1) {
+                    return;
+                }
 
                 const directions = [
                     { dx: 0, dy: -1 },
@@ -222,26 +241,69 @@
                 const options = noBackDirs.length > 0 ? noBackDirs : validDirs;
 
                 let bestDir = options[0];
-                let bestDist = Infinity;
+                
+                if (ghost.scared) {
+                    // 逃跑状态：选择离吃豆人最远的方向
+                    let maxDist = -Infinity;
+                    options.forEach(dir => {
+                        const nx = ghost.x + dir.dx;
+                        const ny = ghost.y + dir.dy;
+                        const dist = Math.abs(nx - pacman.x) + Math.abs(ny - pacman.y);
+                        if (dist > maxDist) {
+                            maxDist = dist;
+                            bestDir = dir;
+                        }
+                    });
+                } else {
+                    // 正常状态：根据不同行为模式选择目标
+                    let targetX = pacman.x;
+                    let targetY = pacman.y;
 
-                options.forEach(dir => {
-                    const nx = ghost.x + dir.dx;
-                    const ny = ghost.y + dir.dy;
-                    const dist = Math.abs(nx - pacman.x) + Math.abs(ny - pacman.y);
-                    if (ghost.scared) {
-                        if (dist > bestDist) {
-                            bestDist = dist;
-                            bestDir = dir;
-                        }
-                    } else {
-                        if (dist < bestDist) {
-                            bestDist = dist;
-                            bestDir = dir;
-                        }
+                    switch (ghost.behavior) {
+                        case 0: // 追踪者：直接追踪吃豆人
+                            break;
+                        case 1: // 伏击者：预测吃豆人前方4格
+                            targetX = pacman.x + pacman.dx * 4;
+                            targetY = pacman.y + pacman.dy * 4;
+                            break;
+                        case 2: // 随机者：随机选择方向
+                            bestDir = options[Math.floor(Math.random() * options.length)];
+                            break;
+                        case 3: // 慢行者：离太近就远离
+                            const distToPacman = Math.abs(ghost.x - pacman.x) + Math.abs(ghost.y - pacman.y);
+                            if (distToPacman < 8) {
+                                // 远离
+                                let maxDist = -Infinity;
+                                options.forEach(dir => {
+                                    const nx = ghost.x + dir.dx;
+                                    const ny = ghost.y + dir.dy;
+                                    const dist = Math.abs(nx - pacman.x) + Math.abs(ny - pacman.y);
+                                    if (dist > maxDist) {
+                                        maxDist = dist;
+                                        bestDir = dir;
+                                    }
+                                });
+                            }
+                            break;
                     }
-                });
 
-                if (Math.random() < 0.2) {
+                    // 如果不是随机者，寻找最优方向
+                    if (ghost.behavior !== 2) {
+                        let minDist = Infinity;
+                        options.forEach(dir => {
+                            const nx = ghost.x + dir.dx;
+                            const ny = ghost.y + dir.dy;
+                            const dist = Math.abs(nx - targetX) + Math.abs(ny - targetY);
+                            if (dist < minDist) {
+                                minDist = dist;
+                                bestDir = dir;
+                            }
+                        });
+                    }
+                }
+
+                // 加入少量随机性，让幽灵不那么死板
+                if (Math.random() < 0.15 && !ghost.scared) {
                     bestDir = options[Math.floor(Math.random() * options.length)];
                 }
 
@@ -250,6 +312,7 @@
                 ghost.x += ghost.dx;
                 ghost.y += ghost.dy;
 
+                // 地图左右穿越
                 if (ghost.x < 0) ghost.x = COLS - 1;
                 if (ghost.x >= COLS) ghost.x = 0;
             });
@@ -268,7 +331,7 @@
                 if (dot.x === pacman.x && dot.y === pacman.y) {
                     score += 50;
                     powerMode = true;
-                    powerModeTimer = 300;
+                    powerModeTimer = 400; // 延长能量模式时间
                     return false;
                 }
                 return true;
@@ -278,8 +341,10 @@
                 if (ghost.x === pacman.x && ghost.y === pacman.y) {
                     if (ghost.scared) {
                         score += 200;
-                        ghost.x = 14;
-                        ghost.y = 14;
+                        // 幽灵被吃后返回各自的起始位置
+                        ghost.x = ghost.homeX;
+                        ghost.y = ghost.homeY;
+                        ghost.scared = false;
                     } else {
                         gameState = 'lost';
                     }
@@ -293,19 +358,23 @@
             document.getElementById('score').textContent = '分数: ' + score;
         }
 
+        let drawFrame = 0;
+        
         function draw() {
+            drawFrame++;
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             for (let y = 0; y < ROWS; y++) {
                 for (let x = 0; x < COLS; x++) {
                     if (map[y][x] === 1) {
-                        ctx.fillStyle = '#0000ff';
+                        ctx.fillStyle = '#1a1aff';
                         ctx.fillRect(x * TILE_SIZE + 1, y * TILE_SIZE + 1, TILE_SIZE - 2, TILE_SIZE - 2);
                     }
                 }
             }
 
+            // 绘制普通豆子
             dots.forEach(dot => {
                 ctx.fillStyle = '#ffb897';
                 ctx.beginPath();
@@ -313,13 +382,28 @@
                 ctx.fill();
             });
 
+            // 绘制黄色大能量豆 - 四个角落
             powerDots.forEach(dot => {
-                ctx.fillStyle = '#ffb897';
+                // 黄色能量豆闪烁效果
+                if (drawFrame % 15 < 8) {
+                    ctx.fillStyle = '#ffff00';
+                } else {
+                    ctx.fillStyle = '#ffcc00';
+                }
                 ctx.beginPath();
-                ctx.arc(dot.x * TILE_SIZE + TILE_SIZE / 2, dot.y * TILE_SIZE + TILE_SIZE / 2, 6, 0, Math.PI * 2);
+                ctx.arc(dot.x * TILE_SIZE + TILE_SIZE / 2, dot.y * TILE_SIZE + TILE_SIZE / 2, 7, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // 添加发光效果
+                if (drawFrame % 30 < 15) {
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(dot.x * TILE_SIZE + TILE_SIZE / 2, dot.y * TILE_SIZE + TILE_SIZE / 2, 9, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             });
 
+            // 绘制吃豆人
             const px = pacman.x * TILE_SIZE + TILE_SIZE / 2;
             const py = pacman.y * TILE_SIZE + TILE_SIZE / 2;
             ctx.fillStyle = '#ffff00';
@@ -331,25 +415,65 @@
             ctx.lineTo(px, py);
             ctx.fill();
 
+            // 绘制幽灵
             ghosts.forEach(ghost => {
                 const gx = ghost.x * TILE_SIZE + TILE_SIZE / 2;
                 const gy = ghost.y * TILE_SIZE + TILE_SIZE / 2;
-                ctx.fillStyle = ghost.scared ? '#0000ff' : ghost.color;
+                
+                // 确定幽灵颜色
+                let ghostColor;
+                if (ghost.scared) {
+                    // 能量模式下幽灵闪烁效果 - 蓝色和白色交替
+                    if (drawFrame % 8 < 4) {
+                        ghostColor = '#0000ff';
+                    } else {
+                        ghostColor = '#ffffff';
+                    }
+                    // 能量模式快结束时闪烁更快
+                    if (powerModeTimer < 150) {
+                        if (drawFrame % 4 < 2) {
+                            ghostColor = '#0000ff';
+                        } else {
+                            ghostColor = '#ffffff';
+                        }
+                    }
+                } else {
+                    ghostColor = ghost.color;
+                }
+                
+                ctx.fillStyle = ghostColor;
                 ctx.beginPath();
+                // 幽灵身体
                 ctx.arc(gx, gy, TILE_SIZE / 2 - 2, Math.PI, 0);
                 ctx.lineTo(gx + TILE_SIZE / 2 - 2, gy + TILE_SIZE / 2 - 2);
+                // 波浪形底部
                 for (let i = 0; i < 3; i++) {
                     ctx.lineTo(gx + TILE_SIZE / 2 - 2 - i * (TILE_SIZE - 4) / 3 - (TILE_SIZE - 4) / 6, gy + TILE_SIZE / 2 - 6);
                     ctx.lineTo(gx + TILE_SIZE / 2 - 2 - (i + 1) * (TILE_SIZE - 4) / 3, gy + TILE_SIZE / 2 - 2);
                 }
                 ctx.fill();
-                if (!ghost.scared) {
-                    ctx.fillStyle = '#fff';
+                
+                // 绘制眼睛
+                if (ghost.scared) {
+                    // 害怕的眼睛 - 大瞳孔
+                    ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
                     ctx.arc(gx - 4, gy - 2, 4, 0, Math.PI * 2);
                     ctx.arc(gx + 4, gy - 2, 4, 0, Math.PI * 2);
                     ctx.fill();
-                    ctx.fillStyle = '#00f';
+                    ctx.fillStyle = '#000000';
+                    ctx.beginPath();
+                    ctx.arc(gx - 4, gy - 2, 2, 0, Math.PI * 2);
+                    ctx.arc(gx + 4, gy - 2, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // 正常的眼睛
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(gx - 4, gy - 2, 4, 0, Math.PI * 2);
+                    ctx.arc(gx + 4, gy - 2, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#0000ff';
                     ctx.beginPath();
                     ctx.arc(gx - 4 + ghost.dx * 2, gy - 2 + ghost.dy * 2, 2, 0, Math.PI * 2);
                     ctx.arc(gx + 4 + ghost.dx * 2, gy - 2 + ghost.dy * 2, 2, 0, Math.PI * 2);
