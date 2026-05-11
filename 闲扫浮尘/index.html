@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>闲扫浮尘</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <canvas id="dustCanvas"></canvas>
+        <div class="control-panel">
+            <h3>氛围控制</h3>
+            <div class="control-item">
+                <label>灰尘密度</label>
+                <select id="densitySelect">
+                    <option value="low" selected>佛系低密</option>
+                    <option value="medium">适中密度</option>
+                    <option value="high">高密度</option>
+                </select>
+            </div>
+            <div class="control-item">
+                <label>笔刷大小</label>
+                <input type="range" id="brushSlider" min="10" max="100" value="40">
+                <span id="brushValue">40</span>
+            </div>
+            <div class="control-item">
+                <label>自动生成速度</label>
+                <input type="range" id="speedSlider" min="0" max="100" value="20">
+                <span id="speedValue">20</span>
+            </div>
+            <button id="resetBtn">一键布满灰尘</button>
+        </div>
+    </div>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
