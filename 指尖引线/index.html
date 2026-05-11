@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>指尖引线</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>指尖引线</h1>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">关卡</span>
+                    <span class="stat-value" id="level">1</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">通关</span>
+                    <span class="stat-value" id="win-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">分数</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="difficulty-selector">
+            <button class="diff-btn active" data-diff="easy">简单</button>
+            <button class="diff-btn" data-diff="normal">普通</button>
+            <button class="diff-btn" data-diff="hard">困难</button>
+        </div>
+        <div class="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        <div class="status" id="status">按住并从起点画到终点</div>
+        <div class="hint" id="hint">💡 绿色区域是安全通道，放心画线！</div>
+        <div class="controls">
+            <button class="btn reset-btn" id="resetBtn">重新开始</button>
+            <button class="btn new-game-btn" id="newGameBtn">新游戏</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

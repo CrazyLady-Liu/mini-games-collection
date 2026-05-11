@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工位植愈 - 拼图游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        #header h1 {
+            font-size: 28px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        #main-area {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        #target-frame {
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #target-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 2px;
+            padding: 2px;
+        }
+
+        .target-slot {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #ccc;
+            transition: all 0.3s ease;
+        }
+
+        .target-slot.highlight {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .target-slot.filled {
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        #pieces-area {
+            width: 350px;
+            height: 400px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #pieces-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .puzzle-piece {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            cursor: grab;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            overflow: hidden;
+        }
+
+        .puzzle-piece:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+        }
+
+        .puzzle-piece.dragging {
+            cursor: grabbing;
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+            z-index: 1000 !important;
+        }
+
+        .puzzle-piece.placed {
+            cursor: grab;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 15px 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .control-btn:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .control-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .control-btn.primary:hover {
+            background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+        }
+
+        .control-btn.success {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: white;
+        }
+
+        #status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 15px 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            font-size: 14px;
+            color: #333;
+            z-index: 1000;
+        }
+
+        #status .progress {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        #victory-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        #victory-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px 60px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: popIn 0.4s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-content h2 {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .modal-content p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .piece-0 { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+        .piece-1 { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); }
+        .piece-2 { background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%); }
+        .piece-3 { background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%); }
+        .piece-4 { background: linear-gradient(135deg, #fddb92 0%, #d1fdff 100%); }
+        .piece-5 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .piece-6 { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+        .piece-7 { background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%); }
+        .piece-8 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="header">
+            <h1>🌿 工位植愈 - 拼图游戏</h1>
+        </div>
+
+        <div id="main-area">
+            <div id="target-frame">
+                <div id="target-grid"></div>
+            </div>
+
+            <div id="pieces-area">
+                <div id="pieces-container"></div>
+            </div>
+        </div>
+
+        <div id="status">
+            <div>完成进度</div>
+            <div class="progress"><span id="placed-count">0</span> / 9</div>
+        </div>
+
+        <div id="controls">
+            <button class="control-btn" id="shuffle-btn">🔀 重新打乱</button>
+            <button class="control-btn primary" id="next-image-btn">🎨 切换图库</button>
+            <button class="control-btn success" id="auto-solve-btn">✨ 自动完成</button>
+        </div>
+
+        <div id="victory-modal">
+            <div class="modal-content">
+                <h2>🎉 恭喜完成！</h2>
+                <p>你成功完成了这个治愈系拼图！</p>
+                <button class="control-btn primary" id="play-again-btn">再玩一次</button>
+                <button class="control-btn" id="new-image-btn">换个图片</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class HealingPuzzleGame {
+            constructor() {
+                this.pieces = [];
+                this.placedPieces = 0;
+                this.currentImageIndex = 0;
+                this.draggingPiece = null;
+                this.offsetX = 0;
+                this.offsetY = 0;
+                
+                // 治愈系图库 - 使用emoji组合
+                this.imageLibrary = [
+                    ['🌿', '🌸', '🦋', '🍀', '🌻', '🌺', '🌾', '🌼', '🌷'],
+                    ['☕', '📚', '💡', '🎨', '🎵', '🌙', '⭐', '🌟', '✨'],
+                    ['🌳', '🌲', '🌴', '🌵', '🎋', '🎍', '🍃', '🍂', '🍁'],
+                    ['🐱', '🐶', '🐰', '🐦', '🐠', '🐬', '🦊', '🐼', '🐨'],
+                    ['🍎', '🍊', '🍋', '🍇', '🍓', '🍑', '🥝', '🍒', '🍍']
+                ];
+
+                this.currentEmojis = [...this.imageLibrary[0]];
+                
+                this.init();
+            }
+
+            init() {
+                this.createTargetGrid();
+                this.initGame();
+                this.setupEventListeners();
+            }
+
+            createTargetGrid() {
+                const grid = document.getElementById('target-grid');
+                grid.innerHTML = '';
+                
+                for (let i = 0; i < 9; i++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'target-slot';
+                    slot.dataset.index = i;
+                    grid.appendChild(slot);
+                }
+            }
+
+            initGame() {
+                this.pieces = [];
+                this.placedPieces = 0;
+                document.getElementById('placed-count').textContent = '0';
+                
+                // 清除现有碎片
+                const container = document.getElementById('pieces-container');
+                container.innerHTML = '';
+                
+                // 重置目标格子
+                const slots = document.querySelectorAll('.target-slot');
+                slots.forEach(slot => {
+                    slot.className = 'target-slot';
+                    slot.innerHTML = '';
+                });
+                
+                this.createPieces();
+                this.scatterPieces();
+            }
+
+            createPieces() {
+                const container = document.getElementById('pieces-container');
+                
+                for (let i = 0; i < 9; i++) {
+                    const piece = document.createElement('div');
+                    piece.className = `puzzle-piece piece-${i}`;
+                    piece.dataset.index = i;
+                    piece.innerHTML = this.currentEmojis[i];
+                    
+                    piece.addEventListener('mousedown', (e) => this.startDrag(e, piece));
+                    piece.addEventListener('touchstart', (e) => this.startDrag(e.touches[0], piece));
+                    
+                    container.appendChild(piece);
+                    this.pieces.push({
+                        element: piece,
+                        index: i,
+                        placed: false,
+                        currentSlot: null
+                    });
+                }
+            }
+
+            scatterPieces() {
+                const container = document.getElementById('pieces-container');
+                const containerRect = container.getBoundingClientRect();
+                const pieceSize = 120;
+                const safetyMargin = 20;
+                
+                // 使用随机但不重叠的算法
+                const positions = this.generateNonOverlappingPositions(9, pieceSize + safetyMargin, containerRect.width - 30, containerRect.height - 30);
+                
+                positions.forEach((pos, index) => {
+                    const piece = this.pieces[index].element;
+                    piece.style.left = `${pos.x}px`;
+                    piece.style.top = `${pos.y}px`;
+                    piece.style.zIndex = index + 1;
+                });
+            }
+
+            generateNonOverlappingPositions(count, pieceSize, maxWidth, maxHeight) {
+                const positions = [];
+                const maxAttempts = 100;
+                
+                for (let i = 0; i < count; i++) {
+                    let validPosition = null;
+                    let attempts = 0;
+                    
+                    while (!validPosition && attempts < maxAttempts) {
+                        const x = Math.random() * (maxWidth - pieceSize);
+                        const y = Math.random() * (maxHeight - pieceSize);
+                        
+                        let overlap = false;
+                        for (const existing of positions) {
+                            const dx = Math.abs(x - existing.x);
+                            const dy = Math.abs(y - existing.y);
+                            if (dx < pieceSize && dy < pieceSize) {
+                                overlap = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!overlap) {
+                            validPosition = { x, y };
+                        }
+                        attempts++;
+                    }
+                    
+                    // 如果找不到位置，使用网格布局
+                    if (!validPosition) {
+                        const cols = Math.ceil(Math.sqrt(count));
+                        const row = Math.floor(i / cols);
+                        const col = i % cols;
+                        validPosition = {
+                            x: col * pieceSize,
+                            y: row * pieceSize
+                        };
+                    }
+                    
+                    positions.push(validPosition);
+                }
+                
+                return positions;
+            }
+
+            startDrag(e, piece) {
+                this.draggingPiece = piece;
+                piece.classList.add('dragging');
+                
+                // 确保在最上层
+                let maxZ = 0;
+                this.pieces.forEach(p => {
+                    const z = parseInt(p.element.style.zIndex) || 0;
+                    if (z > maxZ) maxZ = z;
+                });
+                piece.style.zIndex = maxZ + 1;
+                
+                const rect = piece.getBoundingClientRect();
+                const containerRect = document.getElementById('game-container').getBoundingClientRect();
+                
+                this.offsetX = e.clientX - rect.left;
+                this.offsetY = e.clientY - rect.top;
+            }
+
+            drag(e) {
+                if (!this.draggingPiece) return;
+                
+                const containerRect = document.getElementById('game-container').getBoundingClientRect();
+                const container = document.getElementById('pieces-container');
+                const piecesRect = container.getBoundingClientRect();
+                const frameRect = document.getElementById('target-frame').getBoundingClientRect();
+                
+                let x = e.clientX - containerRect.left - this.offsetX;
+                let y = e.clientY - containerRect.top - this.offsetY;
+                
+                // 检查是否靠近目标区域
+                this.checkSnap(e.clientX, e.clientY);
+                
+                this.draggingPiece.style.left = `${x}px`;
+                this.draggingPiece.style.top = `${y}px`;
+            }
+
+            checkSnap(mouseX, mouseY) {
+                const slots = document.querySelectorAll('.target-slot');
+                const tolerance = 50; // 扩大容错区域
+                
+                slots.forEach(slot => {
+                    const rect = slot.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    
+                    const distance = Math.sqrt(
+                        Math.pow(mouseX - centerX, 2) + 
+                        Math.pow(mouseY - centerY, 2)
+                    );
+                    
+                    if (distance < tolerance && !slot.classList.contains('filled')) {
+                        slot.classList.add('highlight');
+                    } else {
+                        slot.classList.remove('highlight');
+                    }
+                });
+            }
+
+            stopDrag(e) {
+                if (!this.draggingPiece) return;
+                
+                const piece = this.draggingPiece;
+                const pieceData = this.pieces[parseInt(piece.dataset.index)];
+                
+                piece.classList.remove('dragging');
+                
+                // 检查是否应该吸附到某个位置
+                const slots = document.querySelectorAll('.target-slot');
+                let snapped = false;
+                
+                slots.forEach(slot => {
+                    if (slot.classList.contains('highlight') && !slot.classList.contains('filled')) {
+                        this.snapToSlot(piece, pieceData, slot);
+                        snapped = true;
+                    }
+                    slot.classList.remove('highlight');
+                });
+                
+                if (!snapped && pieceData.placed) {
+                    // 从槽位移回碎片区
+                    this.returnToPiecesArea(piece, pieceData);
+                }
+                
+                this.draggingPiece = null;
+                
+                this.checkVictory();
+            }
+
+            snapToSlot(piece, pieceData, slot) {
+                const slotIndex = parseInt(slot.dataset.index);
+                const pieceIndex = parseInt(piece.dataset.index);
+                
+                // 如果之前在某个位置，先清除
+                if (pieceData.currentSlot) {
+                    pieceData.currentSlot.classList.remove('filled');
+                    pieceData.currentSlot.innerHTML = '';
+                    this.placedPieces--;
+                }
+                
+                // 计算槽位在游戏容器中的位置
+                const containerRect = document.getElementById('game-container').getBoundingClientRect();
+                const slotRect = slot.getBoundingClientRect();
+                
+                piece.style.left = `${slotRect.left - containerRect.left + 4}px`;
+                piece.style.top = `${slotRect.top - containerRect.top + 4}px`;
+                piece.style.width = `${slotRect.width - 8}px`;
+                piece.style.height = `${slotRect.height - 8}px`;
+                piece.classList.add('placed');
+                
+                pieceData.placed = true;
+                pieceData.currentSlot = slot;
+                pieceData.targetIndex = slotIndex;
+                
+                slot.classList.add('filled');
+                this.placedPieces++;
+                document.getElementById('placed-count').textContent = this.placedPieces;
+            }
+
+            returnToPiecesArea(piece, pieceData) {
+                piece.style.width = '120px';
+                piece.style.height = '120px';
+                piece.classList.remove('placed');
+                
+                const container = document.getElementById('pieces-container');
+                const containerRect = container.getBoundingClientRect();
+                
+                const x = Math.random() * (containerRect.width - 150) + 15;
+                const y = Math.random() * (containerRect.height - 150) + 15;
+                
+                piece.style.left = `${x}px`;
+                piece.style.top = `${y}px`;
+                
+                pieceData.placed = false;
+                pieceData.currentSlot = null;
+            }
+
+            checkVictory() {
+                if (this.placedPieces < 9) return;
+                
+                // 检查是否所有碎片都在正确位置
+                let allCorrect = true;
+                this.pieces.forEach(pieceData => {
+                    if (pieceData.targetIndex !== pieceData.index) {
+                        allCorrect = false;
+                    }
+                });
+                
+                if (allCorrect) {
+                    setTimeout(() => {
+                        document.getElementById('victory-modal').classList.add('active');
+                    }, 300);
+                }
+            }
+
+            nextImage() {
+                this.currentImageIndex = (this.currentImageIndex + 1) % this.imageLibrary.length;
+                this.currentEmojis = [...this.imageLibrary[this.currentImageIndex]];
+                
+                this.pieces.forEach((pieceData, index) => {
+                    pieceData.element.innerHTML = this.currentEmojis[index];
+                });
+                
+                this.initGame();
+            }
+
+            autoSolve() {
+                this.pieces.forEach((pieceData, index) => {
+                    const slot = document.querySelector(`.target-slot[data-index="${index}"]`);
+                    this.snapToSlot(pieceData.element, pieceData, slot);
+                });
+                
+                this.checkVictory();
+            }
+
+            setupEventListeners() {
+                document.addEventListener('mousemove', (e) => this.drag(e));
+                document.addEventListener('mouseup', (e) => this.stopDrag(e));
+                document.addEventListener('touchmove', (e) => this.drag(e.touches[0]));
+                document.addEventListener('touchend', (e) => this.stopDrag(e));
+                
+                document.getElementById('shuffle-btn').addEventListener('click', () => this.initGame());
+                document.getElementById('next-image-btn').addEventListener('click', () => this.nextImage());
+                document.getElementById('auto-solve-btn').addEventListener('click', () => this.autoSolve());
+                document.getElementById('play-again-btn').addEventListener('click', () => {
+                    document.getElementById('victory-modal').classList.remove('active');
+                    this.initGame();
+                });
+                document.getElementById('new-image-btn').addEventListener('click', () => {
+                    document.getElementById('victory-modal').classList.remove('active');
+                    this.nextImage();
+                });
+            }
+        }
+
+        const game = new HealingPuzzleGame();
+    </script>
+</body>
+</html>

@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工位植愈小游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: #f0f4f8;
+        }
+
+        #desk-area {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23e8eef2" width="100" height="100"/><rect fill="%23dce6ed" x="50" width="50" height="50"/><rect fill="%23dce6ed" y="50" width="50" height="50"/></svg>') repeat;
+            background-size: 40px 40px;
+        }
+
+        #toolbar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 15px 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .tool-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #f0f0f0;
+        }
+
+        .tool-btn:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .tool-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tool-btn.danger {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        #material-palette {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 220px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .material-category {
+            margin-bottom: 15px;
+        }
+
+        .category-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .random-btn {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 5px;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .random-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .material-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .material-item {
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: #f8f8f8;
+            transition: all 0.2s ease;
+            user-select: none;
+            position: relative;
+        }
+
+        .material-item:hover {
+            background: #e8e8e8;
+            transform: scale(1.1);
+        }
+
+        .material-item::after {
+            content: attr(data-size);
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            font-size: 10px;
+            background: #667eea;
+            color: white;
+            padding: 2px 4px;
+            border-radius: 3px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .material-item:hover::after {
+            opacity: 1;
+        }
+
+        .draggable-item {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            transition: transform 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .draggable-item:hover {
+            z-index: 1000 !important;
+        }
+
+        .draggable-item.dragging {
+            opacity: 0.8;
+            transform: scale(1.1);
+        }
+
+        .plant {
+            animation: sway 4s ease-in-out infinite;
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-2deg); }
+            50% { transform: rotate(2deg); }
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .draggable-item:hover .delete-btn {
+            display: flex;
+        }
+
+        #sound-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        #sound-btn:hover {
+            transform: scale(1.1);
+        }
+
+        #layer-controls {
+            position: fixed;
+            top: 20px;
+            right: 80px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none;
+        }
+
+        #layer-controls.active {
+            display: block;
+        }
+
+        .layer-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            background: #f0f0f0;
+            font-size: 18px;
+        }
+
+        .layer-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .selected {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="desk-area"></div>
+        
+        <div id="material-palette">
+            <div class="material-category">
+                <div class="category-title">
+                    🌿 绿植
+                    <button class="random-btn" data-category="plant">🎲 随机</button>
+                </div>
+                <div class="material-items">
+                    <div class="material-item" data-type="plant" data-emoji="🪴" data-size="中" data-preset="绿萝">🪴</div>
+                    <div class="material-item" data-type="plant" data-emoji="🌵" data-size="小" data-preset="仙人掌">🌵</div>
+                    <div class="material-item" data-type="plant" data-emoji="🌱" data-size="小" data-preset="幼苗">🌱</div>
+                    <div class="material-item" data-type="plant" data-emoji="🌿" data-size="中" data-preset="小草">🌿</div>
+                    <div class="material-item" data-type="plant" data-emoji="🍀" data-size="小" data-preset="四叶草">🍀</div>
+                    <div class="material-item" data-type="plant" data-emoji="🌸" data-size="中" data-preset="樱花">🌸</div>
+                    <div class="material-item" data-type="plant" data-emoji="🌺" data-size="中" data-preset="木槿花">🌺</div>
+                    <div class="material-item" data-type="plant" data-emoji="🌻" data-size="大" data-preset="向日葵">🌻</div>
+                    <div class="material-item" data-type="plant" data-emoji="🌷" data-size="小" data-preset="郁金香">🌷</div>
+                    <div class="material-item" data-type="plant" data-emoji="🌹" data-size="中" data-preset="玫瑰">🌹</div>
+                    <div class="material-item" data-type="plant" data-emoji="🌼" data-size="小" data-preset="雏菊">🌼</div>
+                    <div class="material-item" data-type="plant" data-emoji="🌾" data-size="中" data-preset="稻谷">🌾</div>
+                    <div class="material-item" data-type="plant" data-emoji="🍃" data-size="小" data-preset="叶子">🍃</div>
+                    <div class="material-item" data-type="plant" data-emoji="🌴" data-size="大" data-preset="棕榈树">🌴</div>
+                    <div class="material-item" data-type="plant" data-emoji="🎋" data-size="中" data-preset="竹子">🎋</div>
+                    <div class="material-item" data-type="plant" data-emoji="🎍" data-size="中" data-preset="松树">🎍</div>
+                </div>
+            </div>
+            <div class="material-category">
+                <div class="category-title">
+                    � 多肉
+                    <button class="random-btn" data-category="succulent">🎲 随机</button>
+                </div>
+                <div class="material-items">
+                    <div class="material-item" data-type="succulent" data-emoji="🪴" data-size="小" data-preset="多肉盆栽">🪴</div>
+                    <div class="material-item" data-type="succulent" data-emoji="🌵" data-size="小" data-preset="仙人球">🌵</div>
+                    <div class="material-item" data-type="succulent" data-emoji="🌿" data-size="小" data-preset="多肉植物">🌿</div>
+                    <div class="material-item" data-type="succulent" data-emoji="🍀" data-size="小" data-preset="芦荟">🍀</div>
+                </div>
+            </div>
+            <div class="material-category">
+                <div class="category-title">
+                    💰 发财树
+                    <button class="random-btn" data-category="fortune">🎲 随机</button>
+                </div>
+                <div class="material-items">
+                    <div class="material-item" data-type="fortune" data-emoji="🌴" data-size="大" data-preset="发财树">🌴</div>
+                    <div class="material-item" data-type="fortune" data-emoji="🎍" data-size="中" data-preset="招财树">🎍</div>
+                    <div class="material-item" data-type="fortune" data-emoji="🪴" data-size="中" data-preset="摇钱树">🪴</div>
+                </div>
+            </div>
+            <div class="material-category">
+                <div class="category-title">
+                    🪨 石子摆件
+                    <button class="random-btn" data-category="stone">🎲 随机</button>
+                </div>
+                <div class="material-items">
+                    <div class="material-item" data-type="stone" data-emoji="🪨" data-size="小" data-preset="石头">🪨</div>
+                    <div class="material-item" data-type="stone" data-emoji="⛰️" data-size="中" data-preset="假山">⛰️</div>
+                    <div class="material-item" data-type="stone" data-emoji="🏔️" data-size="大" data-preset="山石">🏔️</div>
+                </div>
+            </div>
+            <div class="material-category">
+                <div class="category-title">
+                    🎀 装饰
+                    <button class="random-btn" data-category="decor">🎲 随机</button>
+                </div>
+                <div class="material-items">
+                    <div class="material-item" data-type="decor" data-emoji="📚" data-size="中" data-preset="书籍">📚</div>
+                    <div class="material-item" data-type="decor" data-emoji="☕" data-size="小" data-preset="咖啡">☕</div>
+                    <div class="material-item" data-type="decor" data-emoji="🖊️" data-size="小" data-preset="钢笔">🖊️</div>
+                    <div class="material-item" data-type="decor" data-emoji="🎨" data-size="中" data-preset="调色盘">🎨</div>
+                    <div class="material-item" data-type="decor" data-emoji="💡" data-size="小" data-preset="灯泡">💡</div>
+                    <div class="material-item" data-type="decor" data-emoji="📱" data-size="小" data-preset="手机">📱</div>
+                    <div class="material-item" data-type="decor" data-emoji="💻" data-size="大" data-preset="电脑">💻</div>
+                    <div class="material-item" data-type="decor" data-emoji="🖥️" data-size="大" data-preset="显示器">🖥️</div>
+                    <div class="material-item" data-type="decor" data-emoji="⌨️" data-size="中" data-preset="键盘">⌨️</div>
+                    <div class="material-item" data-type="decor" data-emoji="🖱️" data-size="小" data-preset="鼠标">🖱️</div>
+                    <div class="material-item" data-type="decor" data-emoji="🗂️" data-size="中" data-preset="文件架">🗂️</div>
+                    <div class="material-item" data-type="decor" data-emoji="📎" data-size="小" data-preset="回形针">📎</div>
+                    <div class="material-item" data-type="decor" data-emoji="🔖" data-size="小" data-preset="书签">🔖</div>
+                    <div class="material-item" data-type="decor" data-emoji="🖼️" data-size="中" data-preset="相框">🖼️</div>
+                    <div class="material-item" data-type="decor" data-emoji="🕯️" data-size="小" data-preset="蜡烛">🕯️</div>
+                    <div class="material-item" data-type="decor" data-emoji="🧸" data-size="中" data-preset="玩偶">🧸</div>
+                    <div class="material-item" data-type="decor" data-emoji="🎀" data-size="小" data-preset="蝴蝶结">🎀</div>
+                    <div class="material-item" data-type="decor" data-emoji="🎁" data-size="小" data-preset="礼物">🎁</div>
+                </div>
+            </div>
+            <div class="material-category">
+                <div class="category-title">
+                    💐 干花
+                    <button class="random-btn" data-category="dried">🎲 随机</button>
+                </div>
+                <div class="material-items">
+                    <div class="material-item" data-type="dried" data-emoji="💐" data-size="中" data-preset="花束">💐</div>
+                    <div class="material-item" data-type="dried" data-emoji="🌸" data-size="小" data-preset="干樱花">🌸</div>
+                    <div class="material-item" data-type="dried" data-emoji="🌾" data-size="中" data-preset="干麦穗">🌾</div>
+                    <div class="material-item" data-type="dried" data-emoji="🏵️" data-size="小" data-preset="勋章菊">🏵️</div>
+                </div>
+            </div>
+            <div class="material-category">
+                <div class="category-title">
+                    📦 全部随机
+                    <button class="random-btn" data-category="all" style="font-size:14px;padding:6px 12px;">🎲 随机生成</button>
+                </div>
+            </div>
+        </div>
+
+        <button id="sound-btn">🔊</button>
+
+        <div id="layer-controls">
+            <div style="font-size:12px;margin-bottom:5px;color:#666;">层级</div>
+            <button class="layer-btn" data-action="top" title="置顶">⬆️</button>
+            <button class="layer-btn" data-action="bottom" title="置底">⬇️</button>
+            <button class="layer-btn" data-action="forward" title="上移">↗️</button>
+            <button class="layer-btn" data-action="backward" title="下移">↙️</button>
+            <div style="font-size:12px;margin:8px 0 5px;color:#666;">大小</div>
+            <button class="layer-btn" data-action="sizeUp" title="放大">➕</button>
+            <button class="layer-btn" data-action="sizeDown" title="缩小">➖</button>
+        </div>
+
+        <div id="toolbar">
+            <button class="tool-btn" id="save-btn">💾 保存布局</button>
+            <button class="tool-btn" id="reset-default-btn">🔄 恢复默认</button>
+            <button class="tool-btn danger" id="clear-btn">🗑️ 清空全部</button>
+        </div>
+    </div>
+
+    <script>
+        class OfficePlantGame {
+            constructor() {
+                this.deskArea = document.getElementById('desk-area');
+                this.materialPalette = document.getElementById('material-palette');
+                this.saveBtn = document.getElementById('save-btn');
+                this.resetDefaultBtn = document.getElementById('reset-default-btn');
+                this.clearBtn = document.getElementById('clear-btn');
+                this.soundBtn = document.getElementById('sound-btn');
+                this.layerControls = document.getElementById('layer-controls');
+                
+                this.items = [];
+                this.zIndexCounter = 1;
+                this.selectedItem = null;
+                this.isMuted = false;
+                this.isDragging = false;
+                this.currentDragItem = null;
+                this.offsetX = 0;
+                this.offsetY = 0;
+                
+                // 素材库配置
+                this.materialLibrary = {
+                    plant: [
+                        { emoji: '🪴', size: 'medium', name: '绿萝' },
+                        { emoji: '🌵', size: 'small', name: '仙人掌' },
+                        { emoji: '🌱', size: 'small', name: '幼苗' },
+                        { emoji: '🌿', size: 'medium', name: '小草' },
+                        { emoji: '🍀', size: 'small', name: '四叶草' },
+                        { emoji: '🌸', size: 'medium', name: '樱花' },
+                        { emoji: '🌺', size: 'medium', name: '木槿花' },
+                        { emoji: '🌻', size: 'large', name: '向日葵' },
+                        { emoji: '🌷', size: 'small', name: '郁金香' },
+                        { emoji: '🌹', size: 'medium', name: '玫瑰' },
+                        { emoji: '🌼', size: 'small', name: '雏菊' },
+                        { emoji: '🌾', size: 'medium', name: '稻谷' },
+                        { emoji: '🍃', size: 'small', name: '叶子' },
+                        { emoji: '🌴', size: 'large', name: '棕榈树' },
+                        { emoji: '🎋', size: 'medium', name: '竹子' },
+                        { emoji: '🎍', size: 'medium', name: '松树' }
+                    ],
+                    succulent: [
+                        { emoji: '🪴', size: 'small', name: '多肉盆栽' },
+                        { emoji: '🌵', size: 'small', name: '仙人球' },
+                        { emoji: '🌿', size: 'small', name: '多肉植物' },
+                        { emoji: '🍀', size: 'small', name: '芦荟' }
+                    ],
+                    fortune: [
+                        { emoji: '🌴', size: 'large', name: '发财树' },
+                        { emoji: '🎍', size: 'medium', name: '招财树' },
+                        { emoji: '🪴', size: 'medium', name: '摇钱树' }
+                    ],
+                    stone: [
+                        { emoji: '🪨', size: 'small', name: '石头' },
+                        { emoji: '⛰️', size: 'medium', name: '假山' },
+                        { emoji: '🏔️', size: 'large', name: '山石' }
+                    ],
+                    decor: [
+                        { emoji: '📚', size: 'medium', name: '书籍' },
+                        { emoji: '☕', size: 'small', name: '咖啡' },
+                        { emoji: '🖊️', size: 'small', name: '钢笔' },
+                        { emoji: '🎨', size: 'medium', name: '调色盘' },
+                        { emoji: '💡', size: 'small', name: '灯泡' },
+                        { emoji: '📱', size: 'small', name: '手机' },
+                        { emoji: '💻', size: 'large', name: '电脑' },
+                        { emoji: '🖥️', size: 'large', name: '显示器' },
+                        { emoji: '⌨️', size: 'medium', name: '键盘' },
+                        { emoji: '🖱️', size: 'small', name: '鼠标' },
+                        { emoji: '🗂️', size: 'medium', name: '文件架' },
+                        { emoji: '📎', size: 'small', name: '回形针' },
+                        { emoji: '🔖', size: 'small', name: '书签' },
+                        { emoji: '🖼️', size: 'medium', name: '相框' },
+                        { emoji: '🕯️', size: 'small', name: '蜡烛' },
+                        { emoji: '🧸', size: 'medium', name: '玩偶' },
+                        { emoji: '🎀', size: 'small', name: '蝴蝶结' },
+                        { emoji: '🎁', size: 'small', name: '礼物' }
+                    ],
+                    dried: [
+                        { emoji: '💐', size: 'medium', name: '花束' },
+                        { emoji: '🌸', size: 'small', name: '干樱花' },
+                        { emoji: '🌾', size: 'medium', name: '干麦穗' },
+                        { emoji: '🏵️', size: 'small', name: '勋章菊' }
+                    ]
+                };
+                
+                // 大小配置
+                this.sizeConfig = {
+                    small: { min: 30, max: 45, default: 38 },
+                    medium: { min: 45, max: 65, default: 55 },
+                    large: { min: 60, max: 85, default: 70 }
+                };
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadFromStorage();
+            }
+
+            setupEventListeners() {
+                const materialItems = document.querySelectorAll('.material-item');
+                materialItems.forEach(item => {
+                    item.addEventListener('click', () => this.createItem(item));
+                });
+
+                // 随机生成按钮
+                const randomBtns = document.querySelectorAll('.random-btn');
+                randomBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const category = btn.dataset.category;
+                        this.createRandomItem(category);
+                    });
+                });
+
+                this.saveBtn.addEventListener('click', () => this.saveLayout());
+                this.resetDefaultBtn.addEventListener('click', () => this.resetDefault());
+                this.clearBtn.addEventListener('click', () => this.clearAll());
+                this.soundBtn.addEventListener('click', () => this.toggleSound());
+
+                const layerBtns = document.querySelectorAll('.layer-btn');
+                layerBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => this.adjustLayer(e.target.dataset.action));
+                });
+
+                this.deskArea.addEventListener('click', (e) => {
+                    if (e.target === this.deskArea) {
+                        this.deselectItem();
+                    }
+                });
+
+                document.addEventListener('mousemove', (e) => this.drag(e));
+                document.addEventListener('mouseup', () => this.stopDrag());
+                document.addEventListener('touchmove', (e) => this.drag(e.touches[0]));
+                document.addEventListener('touchend', () => this.stopDrag());
+            }
+
+            createItem(materialItem) {
+                const emoji = materialItem.dataset.emoji;
+                const type = materialItem.dataset.type;
+                const sizeLabel = materialItem.dataset.size || '中';
+                
+                // 获取大小配置
+                const sizeMap = { '小': 'small', '中': 'medium', '大': 'large' };
+                const sizeKey = sizeMap[sizeLabel] || 'medium';
+                const sizeConfig = this.sizeConfig[sizeKey];
+                const fontSize = this.getRandomSize(sizeConfig);
+                
+                this.createDraggableItem({
+                    emoji,
+                    type,
+                    size: sizeKey,
+                    fontSize,
+                    left: Math.random() * (window.innerWidth - 100) + 50,
+                    top: Math.random() * (window.innerHeight - 200) + 50
+                });
+            }
+
+            createRandomItem(category) {
+                let materials = [];
+                
+                if (category === 'all') {
+                    // 从所有分类中随机选择
+                    const allCategories = Object.keys(this.materialLibrary);
+                    const randomCategory = allCategories[Math.floor(Math.random() * allCategories.length)];
+                    materials = this.materialLibrary[randomCategory];
+                } else if (this.materialLibrary[category]) {
+                    materials = this.materialLibrary[category];
+                }
+                
+                if (materials.length === 0) return;
+                
+                // 随机选择一个素材
+                const randomMaterial = materials[Math.floor(Math.random() * materials.length)];
+                const sizeConfig = this.sizeConfig[randomMaterial.size];
+                const fontSize = this.getRandomSize(sizeConfig);
+                
+                this.createDraggableItem({
+                    emoji: randomMaterial.emoji,
+                    type: category,
+                    size: randomMaterial.size,
+                    fontSize,
+                    left: Math.random() * (window.innerWidth - 100) + 50,
+                    top: Math.random() * (window.innerHeight - 200) + 50
+                });
+            }
+
+            getRandomSize(sizeConfig) {
+                return Math.random() * (sizeConfig.max - sizeConfig.min) + sizeConfig.min;
+            }
+
+            createDraggableItem(config) {
+                const { emoji, type, size, fontSize, left, top } = config;
+                
+                const item = document.createElement('div');
+                item.className = `draggable-item ${['plant', 'succulent', 'fortune', 'dried'].includes(type) ? 'plant' : ''}`;
+                item.style.left = `${left}px`;
+                item.style.top = `${top}px`;
+                item.style.fontSize = `${fontSize}px`;
+                item.style.zIndex = ++this.zIndexCounter;
+                item.innerHTML = emoji;
+                item.dataset.type = type;
+                item.dataset.size = size;
+                item.dataset.fontSize = fontSize;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '✕';
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.deleteItem(item);
+                });
+                item.appendChild(deleteBtn);
+
+                item.addEventListener('mousedown', (e) => this.startDrag(e, item));
+                item.addEventListener('touchstart', (e) => this.startDrag(e.touches[0], item));
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.selectItem(item);
+                });
+
+                this.deskArea.appendChild(item);
+                this.items.push(item);
+                
+                this.playSound('place');
+            }
+
+            selectItem(item) {
+                this.deselectItem();
+                this.selectedItem = item;
+                item.classList.add('selected');
+                this.layerControls.classList.add('active');
+                item.style.zIndex = ++this.zIndexCounter;
+            }
+
+            deselectItem() {
+                if (this.selectedItem) {
+                    this.selectedItem.classList.remove('selected');
+                }
+                this.selectedItem = null;
+                this.layerControls.classList.remove('active');
+            }
+
+            deleteItem(item) {
+                const index = this.items.indexOf(item);
+                if (index > -1) {
+                    this.items.splice(index, 1);
+                }
+                item.remove();
+                if (this.selectedItem === item) {
+                    this.deselectItem();
+                }
+                this.playSound('delete');
+            }
+
+            startDrag(e, item) {
+                this.isDragging = true;
+                this.currentDragItem = item;
+                this.selectItem(item);
+                item.classList.add('dragging');
+                
+                const rect = item.getBoundingClientRect();
+                this.offsetX = e.clientX - rect.left;
+                this.offsetY = e.clientY - rect.top;
+            }
+
+            drag(e) {
+                if (!this.isDragging || !this.currentDragItem) return;
+                
+                const x = e.clientX - this.offsetX;
+                const y = e.clientY - this.offsetY;
+                
+                const maxX = window.innerWidth - this.currentDragItem.offsetWidth;
+                const maxY = window.innerHeight - this.currentDragItem.offsetHeight;
+                
+                const finalX = Math.max(0, Math.min(x, maxX));
+                const finalY = Math.max(0, Math.min(y, maxY));
+                
+                this.currentDragItem.style.left = `${finalX}px`;
+                this.currentDragItem.style.top = `${finalY}px`;
+            }
+
+            stopDrag() {
+                if (this.currentDragItem) {
+                    this.currentDragItem.classList.remove('dragging');
+                    this.playSound('drop');
+                }
+                this.isDragging = false;
+                this.currentDragItem = null;
+            }
+
+            adjustLayer(action) {
+                if (!this.selectedItem) return;
+                
+                const currentZ = parseInt(this.selectedItem.style.zIndex);
+                
+                switch(action) {
+                    case 'top':
+                        this.selectedItem.style.zIndex = ++this.zIndexCounter;
+                        break;
+                    case 'bottom':
+                        this.selectedItem.style.zIndex = 0;
+                        break;
+                    case 'forward':
+                        this.selectedItem.style.zIndex = currentZ + 1;
+                        break;
+                    case 'backward':
+                        this.selectedItem.style.zIndex = Math.max(0, currentZ - 1);
+                        break;
+                    case 'sizeUp':
+                        this.adjustSize(1.1);
+                        break;
+                    case 'sizeDown':
+                        this.adjustSize(0.9);
+                        break;
+                }
+            }
+
+            adjustSize(ratio) {
+                if (!this.selectedItem) return;
+                
+                let currentSize = parseFloat(this.selectedItem.style.fontSize);
+                if (!currentSize) currentSize = 55;
+                
+                // 获取当前尺寸对应的大小配置
+                let targetSize = currentSize * ratio;
+                
+                // 限制最大最小尺寸
+                const minSize = 25;
+                const maxSize = 100;
+                targetSize = Math.max(minSize, Math.min(maxSize, targetSize));
+                
+                this.selectedItem.style.fontSize = `${targetSize}px`;
+                this.selectedItem.dataset.fontSize = targetSize;
+            }
+
+            saveLayout() {
+                const layout = this.items.map(item => ({
+                    emoji: item.textContent.slice(0, -1),
+                    left: item.style.left,
+                    top: item.style.top,
+                    zIndex: item.style.zIndex,
+                    type: item.dataset.type || (item.classList.contains('plant') ? 'plant' : 'decor'),
+                    size: item.dataset.size || 'medium',
+                    fontSize: item.dataset.fontSize || 55
+                }));
+                
+                localStorage.setItem('officePlantLayout', JSON.stringify(layout));
+                this.showNotification('布局已保存！');
+                this.playSound('save');
+            }
+
+            loadFromStorage() {
+                const savedLayout = localStorage.getItem('officePlantLayout');
+                if (savedLayout) {
+                    const layout = JSON.parse(savedLayout);
+                    layout.forEach(itemData => {
+                        this.createItemFromData(itemData);
+                    });
+                } else {
+                    this.resetDefault();
+                }
+            }
+
+            createItemFromData(itemData) {
+                const type = itemData.type || 'decor';
+                const size = itemData.size || 'medium';
+                const fontSize = itemData.fontSize || this.sizeConfig[size].default;
+                
+                const item = document.createElement('div');
+                item.className = `draggable-item ${['plant', 'succulent', 'fortune', 'dried'].includes(type) ? 'plant' : ''}`;
+                item.style.left = itemData.left;
+                item.style.top = itemData.top;
+                item.style.fontSize = `${fontSize}px`;
+                item.style.zIndex = itemData.zIndex;
+                item.innerHTML = itemData.emoji;
+                item.dataset.type = type;
+                item.dataset.size = size;
+                item.dataset.fontSize = fontSize;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '✕';
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.deleteItem(item);
+                });
+                item.appendChild(deleteBtn);
+
+                item.addEventListener('mousedown', (e) => this.startDrag(e, item));
+                item.addEventListener('touchstart', (e) => this.startDrag(e.touches[0], item));
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.selectItem(item);
+                });
+
+                this.deskArea.appendChild(item);
+                this.items.push(item);
+                
+                this.zIndexCounter = Math.max(this.zIndexCounter, parseInt(itemData.zIndex));
+            }
+
+            resetDefault() {
+                this.clearAll();
+                
+                const defaultItems = [
+                    { emoji: '🪴', x: 100, y: 150, type: 'plant', size: 'medium' },
+                    { emoji: '🌵', x: 300, y: 200, type: 'succulent', size: 'small' },
+                    { emoji: '📚', x: 500, y: 300, type: 'decor', size: 'medium' },
+                    { emoji: '☕', x: 200, y: 400, type: 'decor', size: 'small' },
+                    { emoji: '💡', x: 600, y: 150, type: 'decor', size: 'small' },
+                    { emoji: '🌴', x: 800, y: 100, type: 'fortune', size: 'large' }
+                ];
+                
+                defaultItems.forEach(itemData => {
+                    const sizeConfig = this.sizeConfig[itemData.size];
+                    this.createDraggableItem({
+                        emoji: itemData.emoji,
+                        type: itemData.type,
+                        size: itemData.size,
+                        fontSize: sizeConfig.default,
+                        left: itemData.x,
+                        top: itemData.y
+                    });
+                });
+            }
+
+            clearAll() {
+                this.items.forEach(item => item.remove());
+                this.items = [];
+                this.deselectItem();
+                this.zIndexCounter = 1;
+            }
+
+            toggleSound() {
+                this.isMuted = !this.isMuted;
+                this.soundBtn.innerHTML = this.isMuted ? '🔇' : '🔊';
+            }
+
+            playSound(type) {
+                if (this.isMuted) return;
+                
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                switch(type) {
+                    case 'place':
+                        oscillator.frequency.value = 440;
+                        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                        break;
+                    case 'drop':
+                        oscillator.frequency.value = 330;
+                        gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+                        break;
+                    case 'delete':
+                        oscillator.frequency.value = 220;
+                        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                        break;
+                    case 'save':
+                        oscillator.frequency.value = 523;
+                        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                        break;
+                }
+                
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            }
+
+            showNotification(message) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 15px 30px;
+                    border-radius: 10px;
+                    z-index: 2000;
+                    font-size: 16px;
+                    animation: fadeInOut 1.5s ease-in-out;
+                `;
+                notification.textContent = message;
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes fadeInOut {
+                        0%, 100% { opacity: 0; }
+                        20%, 80% { opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                document.body.appendChild(notification);
+                setTimeout(() => notification.remove(), 1500);
+            }
+        }
+
+        const game = new OfficePlantGame();
+    </script>
+</body>
+</html>
