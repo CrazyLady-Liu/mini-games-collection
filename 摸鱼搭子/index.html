@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>摸鱼数格子</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🐟 摸鱼数格子</h1>
+        
+        <div class="difficulty-section">
+            <span>难度：</span>
+            <button class="difficulty-btn active" data-difficulty="easy">简单</button>
+            <button class="difficulty-btn" data-difficulty="normal">普通</button>
+            <button class="difficulty-btn" data-difficulty="hard">困难</button>
+        </div>
+        
+        <div class="game-info">
+            <div class="target-color-info">
+                <span>目标颜色：</span>
+                <span class="target-color-preview" id="targetColorPreview"></span>
+                <span id="targetColorName"></span>
+            </div>
+            <div class="score">
+                <span>得分：<span id="score">0</span></span>
+            </div>
+        </div>
+        
+        <div class="grid-container" id="gridContainer"></div>
+        
+        <div class="input-section">
+            <label for="answerInput">目标颜色格子数量：</label>
+            <input type="number" id="answerInput" min="0" placeholder="输入数量">
+            <button id="submitBtn">提交答案</button>
+            <button id="resetBtn">新游戏</button>
+        </div>
+        
+        <div class="result" id="result"></div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 50%, #ffecd2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-container {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(10px);
+    border-radius: 28px;
+    padding: 35px;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+.header h1 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 2.6em;
+    margin-bottom: 12px;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+.instruction {
+    color: #718096;
+    font-size: 1.05em;
+    margin-bottom: 22px;
+}
+
+.game-area {
+    position: relative;
+    display: inline-block;
+}
+
+#gameCanvas {
+    border: 4px solid #e2e8f0;
+    border-radius: 18px;
+    background: #ffffff;
+    cursor: grab;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+#gameCanvas:active {
+    cursor: grabbing;
+}
+
+.game-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.1em;
+    font-weight: bold;
+    padding: 22px 45px;
+    border-radius: 16px;
+    display: none;
+    z-index: 10;
+    backdrop-filter: blur(5px);
+}
+
+.game-message.show {
+    display: block;
+    animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.game-message.win {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.95) 0%, rgba(102, 187, 106, 0.95) 100%);
+    color: white;
+    box-shadow: 0 10px 30px rgba(76, 175, 80, 0.4);
+}
+
+.game-message.lose {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.95) 0%, rgba(239, 83, 80, 0.95) 100%);
+    color: white;
+    box-shadow: 0 10px 30px rgba(244, 67, 54, 0.4);
+}
+
+@keyframes popIn {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    70% { transform: translate(-50%, -50%) scale(1.08); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.controls {
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 35px;
+}
+
+#resetBtn {
+    padding: 14px 36px;
+    font-size: 1.1em;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+#resetBtn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+#resetBtn:active {
+    transform: translateY(-1px);
+}
+
+.status {
+    font-size: 1.25em;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+.tips {
+    margin-top: 18px;
+    color: #a0aec0;
+    font-size: 0.95em;
+}

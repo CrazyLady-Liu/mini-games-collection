@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方寸找茬 - 极简办公版</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>方寸找茬</h1>
+            <p class="subtitle">极简办公版 · 轻松摸鱼</p>
+            <div class="stats">
+                <div class="stat">
+                    <span class="label">得分</span>
+                    <span class="value" id="score">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">关卡</span>
+                    <span class="value" id="level">1</span>
+                </div>
+                <div class="stat">
+                    <span class="label">用时</span>
+                    <span class="value" id="timer">00:00</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <div class="canvas-wrapper">
+                <div class="canvas-container">
+                    <div class="label">图一</div>
+                    <canvas id="canvas1" width="400" height="300"></canvas>
+                    <div class="feedback" id="feedback1"></div>
+                </div>
+                <div class="canvas-container">
+                    <div class="label">图二</div>
+                    <canvas id="canvas2" width="400" height="300"></canvas>
+                    <div class="feedback" id="feedback2"></div>
+                </div>
+            </div>
+            <div class="controls">
+                <button id="hintBtn" class="btn btn-secondary">💡 提示</button>
+                <button id="nextBtn" class="btn btn-primary">下一题</button>
+            </div>
+            <div id="message" class="message"></div>
+        </main>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

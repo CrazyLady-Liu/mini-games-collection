@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圆途迂回</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>圆途迂回</h1>
+            <p class="instruction">控制圆点绕圈一周，躲避障碍物！</p>
+        </div>
+        <div class="game-area">
+            <canvas id="gameCanvas"></canvas>
+            <div id="gameMessage" class="game-message"></div>
+        </div>
+        <div class="controls">
+            <button id="resetBtn">重新开始</button>
+            <div class="status">
+                <span>进度: <span id="progress">0</span>%</span>
+            </div>
+        </div>
+        <div class="tips">
+            <p>提示：使用方向键 或 鼠标拖拽 控制圆点移动</p>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
