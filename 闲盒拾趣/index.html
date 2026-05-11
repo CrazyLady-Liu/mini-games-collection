@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>闲盒拾趣 - 盲盒抽卡</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎁 闲盒拾趣</h1>
+            <div class="stats">
+                <span class="coins">💎 金币: <span id="coins">100</span></span>
+                <button id="effects-toggle" class="btn effects-on">✨ 特效</button>
+                <button id="collection-btn" class="btn">📖 图鉴</button>
+            </div>
+        </header>
+
+        <main>
+            <div class="blind-box-section">
+                <div id="particles-container" class="particles-container"></div>
+                <div id="blind-box" class="blind-box">
+                    <div class="box-wrapper">
+                        <div class="box-top"></div>
+                        <div class="box-body">
+                            <span class="question">?</span>
+                        </div>
+                    </div>
+                </div>
+                <button id="open-btn" class="open-btn">🎲 开启盲盒 (10金币)</button>
+            </div>
+
+            <div class="result-popup" id="result-popup">
+                <div class="popup-content">
+                    <div class="item-display" id="item-display"></div>
+                    <p class="item-name" id="item-name"></p>
+                    <p class="item-rarity" id="item-rarity"></p>
+                    <button class="close-btn" id="close-popup">确定</button>
+                </div>
+            </div>
+        </main>
+
+        <div class="collection-modal" id="collection-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>📖 藏品图鉴</h2>
+                    <span class="close-modal" id="close-modal">&times;</span>
+                </div>
+                <div class="collection-grid" id="collection-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
