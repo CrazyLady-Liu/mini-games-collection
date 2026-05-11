@@ -10,13 +10,19 @@
     <div class="game-container" id="gameContainer">
         <div class="game-header">
             <div class="score-display">分数: <span id="score">0</span></div>
-            <div class="combo-display">连击: <span id="combo">0</span>x</div>
+            <div class="combo-display">
+                连击: <span id="combo">0</span>x
+                <span class="multiplier-display" id="multiplierDisplay" style="display: none;">×<span id="multiplier">1</span></span>
+            </div>
             <div class="lives-display" id="livesDisplay">
                 <span class="heart">❤️</span>
                 <span class="heart">❤️</span>
                 <span class="heart">❤️</span>
             </div>
-            <div class="shield-display" id="shieldDisplay" style="display: none;">🛡️</div>
+            <div class="status-display" id="statusDisplay" style="display: none;">
+                <span class="status-icon" id="statusIcon"></span>
+                <span class="status-timer" id="statusTimer"></span>
+            </div>
         </div>
         <div class="milestone-display" id="milestoneDisplay">下一目标: 500分</div>
         <canvas id="gameCanvas"></canvas>

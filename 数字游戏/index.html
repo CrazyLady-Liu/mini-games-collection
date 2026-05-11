@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字猜谜游戏</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 数字猜谜游戏</h1>
+        <div class="game-board">
+            <div class="score-board">
+                <div class="score-item">
+                    <span class="label">当前分数:</span>
+                    <span id="current-score">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="label">最佳记录:</span>
+                    <span id="best-score">--</span>
+                </div>
+                <div class="score-item">
+                    <span class="label">剩余次数:</span>
+                    <span id="remaining-attempts">10</span>
+                </div>
+            </div>
+            <div class="hint-section">
+                <div id="hint" class="hint">猜一个1-100之间的数字</div>
+            </div>
+            <div class="input-section">
+                <input type="text" id="guess-input" placeholder="输入你的猜测" maxlength="3">
+                <button id="guess-btn">猜!</button>
+            </div>
+            <div class="history-section">
+                <h3>猜测历史</h3>
+                <div id="guess-history" class="history-list"></div>
+            </div>
+            <div class="action-section">
+                <button id="restart-btn" class="restart-btn">重新开始</button>
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

@@ -33,6 +33,20 @@ body {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+.combo-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.multiplier-display {
+    padding: 4px 12px;
+    background: linear-gradient(90deg, #ff8800 0%, #ff4444 100%);
+    border-radius: 20px;
+    font-size: 16px;
+    animation: pulse 0.5s ease-in-out infinite;
+}
+
 .lives-display {
     display: flex;
     gap: 6px;
@@ -43,9 +57,18 @@ body {
     transition: transform 0.2s;
 }
 
-.shield-display {
-    font-size: 28px;
-    animation: pulse 1.5s ease-in-out infinite;
+.status-display {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: linear-gradient(90deg, #ffd700 0%, #ff8800 100%);
+    border-radius: 20px;
+    font-size: 18px;
+}
+
+.status-icon {
+    font-size: 22px;
 }
 
 @keyframes pulse {

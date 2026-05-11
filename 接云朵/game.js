@@ -11,12 +11,14 @@ const Game = (function() {
     let canvas, ctx;
     let cloud, drops, effects, floatingTexts;
     let score, lives, combo, comboTimer;
-    let difficulty, gameRunning, hasShield;
+    let difficulty, gameRunning, hasShield, isInvincible, invincibleTimer;
     let cloudFlash, shakeOffset, shakeTimer;
     let keys = {};
     let mouseX = CANVAS_WIDTH / 2;
     let currentMilestone = 500;
     let milestones = [500, 1000, 2000, 3500, 5000, 7000, 10000];
+    let invincibleTimeLeft = 0;
+    let statusUpdateInterval;
 
     const initModule = {
         init: function() {
@@ -46,10 +48,14 @@ const Game = (function() {
             difficulty = 1;
             gameRunning = false;
             hasShield = false;
+            isInvincible = false;
+            invincibleTimer = null;
+            invincibleTimeLeft = 0;
             cloudFlash = 0;
             shakeOffset = { x: 0, y: 0 };
             shakeTimer = null;
             currentMilestone = 500;
+            if (statusUpdateInterval) clearInterval(statusUpdateInterval);
             this.updateUI();
         },
         setupEventListeners: function() {
@@ -71,6 +77,8 @@ const Game = (function() {
         },
         gameOver: function() {
             gameRunning = false;
+            if (invincibleTimer) clearTimeout(invincibleTimer);
+            if (statusUpdateInterval) clearInterval(statusUpdateInterval);
             const overlay = document.getElementById('gameOverlay');
             document.getElementById('overlayTitle').textContent = '游戏结束';
             document.getElementById('overlayMessage').textContent = `最终分数: ${score}`;
@@ -88,8 +96,29 @@ const Game = (function() {
                 heart.textContent = '❤️';
                 livesDisplay.appendChild(heart);
             }
-            const shieldDisplay = document.getElementById('shieldDisplay');
-            shieldDisplay.style.display = hasShield ? 'block' : 'none';
+            let multiplier = 1;
+            if (combo >= 10) multiplier = 3;
+            else if (combo >= 5) multiplier = 2;
+            else if (combo >= 3) multiplier = 1.5;
+            const multiplierDisplay = document.getElementById('multiplierDisplay');
+            if (multiplier > 1) {
+                multiplierDisplay.style.display = 'inline';
+                document.getElementById('multiplier').textContent = multiplier;
+            } else {
+                multiplierDisplay.style.display = 'none';
+            }
+            const statusDisplay = document.getElementById('statusDisplay');
+            if (isInvincible) {
+                statusDisplay.style.display = 'flex';
+                document.getElementById('statusIcon').textContent = '⭐';
+                document.getElementById('statusTimer').textContent = Math.ceil(invincibleTimeLeft) + 's';
+            } else if (hasShield) {
+                statusDisplay.style.display = 'flex';
+                document.getElementById('statusIcon').textContent = '🛡️';
+                document.getElementById('statusTimer').textContent = '';
+            } else {
+                statusDisplay.style.display = 'none';
+            }
             const milestoneIndex = milestones.findIndex(m => m > score);
             if (milestoneIndex !== -1) {
                 currentMilestone = milestones[milestoneIndex];
@@ -111,6 +140,22 @@ const Game = (function() {
                     shakeOffset = { x: 0, y: 0 };
                 }
             }, 30);
+        },
+        activateInvincibility: function(duration) {
+            isInvincible = true;
+            invincibleTimeLeft = duration;
+            if (invincibleTimer) clearTimeout(invincibleTimer);
+            if (statusUpdateInterval) clearInterval(statusUpdateInterval);
+            invincibleTimer = setTimeout(() => {
+                isInvincible = false;
+                invincibleTimeLeft = 0;
+                if (statusUpdateInterval) clearInterval(statusUpdateInterval);
+                this.updateUI();
+            }, duration * 1000);
+            statusUpdateInterval = setInterval(() => {
+                invincibleTimeLeft -= 0.1;
+                this.updateUI();
+            }, 100);
         }
     };
 
@@ -189,12 +234,17 @@ const Game = (function() {
         addScore: function(x, y) {
             combo++;
             let multiplier = 1;
-            if (combo >= 5) multiplier = 2;
+            if (combo >= 10) multiplier = 3;
+            else if (combo >= 5) multiplier = 2;
             else if (combo >= 3) multiplier = 1.5;
             const baseScore = 10;
             const earnedScore = Math.floor(baseScore * multiplier);
             score += earnedScore;
-            effectModule.addFloatingText(x, y, `+${earnedScore}`, multiplier > 1 ? '#FFD700' : '#FFFFFF');
+            let textColor = '#FFFFFF';
+            if (multiplier === 3) textColor = '#FF4444';
+            else if (multiplier === 2) textColor = '#FF8800';
+            else if (multiplier === 1.5) textColor = '#FFD700';
+            effectModule.addFloatingText(x, y, `+${earnedScore}`, textColor);
             if (comboTimer) clearTimeout(comboTimer);
             comboTimer = setTimeout(() => {
                 combo = 0;
@@ -207,13 +257,14 @@ const Game = (function() {
         checkMilestone: function() {
             if (score >= currentMilestone && milestones.includes(currentMilestone)) {
                 effectModule.addFloatingText(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, `🎉 达成 ${currentMilestone}分！`, '#FFD700');
-                if (!hasShield) {
-                    hasShield = true;
-                    effectModule.addFloatingText(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 40, '获得护盾！', '#00BFFF');
-                }
+                effectModule.addFloatingText(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 40, '获得5秒无敌！', '#FF44FF');
+                initModule.activateInvincibility(5);
             }
         },
         takeDamage: function() {
+            if (isInvincible) {
+                return;
+            }
             if (hasShield) {
                 hasShield = false;
                 effectModule.addFloatingText(cloud.x, cloud.y - 20, '护盾破碎！', '#00BFFF');
@@ -283,10 +334,16 @@ const Game = (function() {
     }
 
     function drawCloud() {
+        if (isInvincible) {
+            ctx.save();
+            const time = Date.now() / 200;
+            ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
+            ctx.shadowBlur = 20 + Math.sin(time) * 10;
+        }
         if (cloudFlash > 0 && Math.floor(cloudFlash / 3) % 2 === 0) {
             ctx.globalAlpha = 0.5;
         }
-        ctx.fillStyle = '#FFFFFF';
+        ctx.fillStyle = isInvincible ? '#FFD700' : '#FFFFFF';
         ctx.beginPath();
         ctx.arc(cloud.x + 20, cloud.y + 25, 20, 0, Math.PI * 2);
         ctx.arc(cloud.x + 40, cloud.y + 20, 25, 0, Math.PI * 2);
@@ -298,6 +355,9 @@ const Game = (function() {
             ctx.beginPath();
             ctx.arc(cloud.x + CLOUD_WIDTH / 2, cloud.y + CLOUD_HEIGHT / 2, 45, 0, Math.PI * 2);
             ctx.stroke();
+        }
+        if (isInvincible) {
+            ctx.restore();
         }
         ctx.globalAlpha = 1;
     }
