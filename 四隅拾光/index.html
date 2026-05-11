@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四隅拾光 - 拼图游戏</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>四隅拾光</h1>
+            <p class="subtitle">工位摸鱼专属 · 轻松治愈</p>
+        </header>
+
+        <main>
+            <div class="game-area">
+                <div class="puzzle-container" id="puzzleContainer">
+                </div>
+                <div class="complete-overlay" id="completeOverlay">
+                    <div class="complete-content">
+                        <h2>拼好啦 🌸</h2>
+                        <p>享受这一刻的宁静</p>
+                        <div class="complete-image" id="completeImage"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" id="resetBtn">
+                    <span class="icon">🔄</span> 重新开始
+                </button>
+                <button class="btn btn-secondary" id="hintBtn">
+                    <span class="icon">💡</span> 给点提示
+                </button>
+                <button class="btn btn-secondary" id="changeImageBtn">
+                    <span class="icon">🎨</span> 换一张图
+                </button>
+            </div>
+
+            <div class="image-selector" id="imageSelector">
+                <div class="selector-title">选择治愈系素材</div>
+                <div class="thumbnails" id="thumbnails"></div>
+            </div>
+        </main>
+
+        <footer>
+            <p>慢慢来，不着急 · 4 块拼图 · 无压力</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

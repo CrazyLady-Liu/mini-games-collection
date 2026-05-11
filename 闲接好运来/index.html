@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>闲接好运来</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🍀 闲接好运来 🍀</h1>
+            <div class="score-board">
+                <span>分数: <span id="score">0</span></span>
+            </div>
+            <button id="toggleEffects" class="toggle-btn">✨ 特效</button>
+        </div>
+        
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="game-overlay" id="startScreen">
+            <div class="overlay-content">
+                <h2>🎊 闲接好运来 🎊</h2>
+                <p>接住金币和福袋获得好运！</p>
+                <p>避开石块和垃圾！</p>
+                <button id="startBtn">开始游戏</button>
+            </div>
+        </div>
+        
+        <div class="game-overlay" id="gameOverScreen" style="display: none;">
+            <div class="overlay-content">
+                <h2>游戏结束</h2>
+                <p>最终分数: <span id="finalScore">0</span></p>
+                <button id="restartBtn">再来一次</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <p>使用 ← → 方向键或拖拽托盘移动</p>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
