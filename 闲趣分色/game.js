@@ -4,6 +4,12 @@ const CONFIG = {
     dampeningFactor: 0.12,
     velocityDecay: 0.88,
     snapExpandFactor: 1.5,
+    speedPresets: {
+        slow: { dampening: 0.06, decay: 0.92 },
+        normal: { dampening: 0.12, decay: 0.88 },
+        fast: { dampening: 0.2, decay: 0.82 },
+        extreme: { dampening: 0.3, decay: 0.75 }
+    },
     baseColors: {
         easy: ['#FF3B30', '#007AFF'],
         normal: ['#FF3B30', '#007AFF', '#FFCC00', '#34C759'],
@@ -52,6 +58,9 @@ class ColorSortGame {
         this.currentPosition = { x: 0, y: 0 };
         this.targetPosition = { x: 0, y: 0 };
         this.animationId = null;
+        this.isPaused = false;
+        this.currentSpeedPreset = 'normal';
+        this.customDampening = 0.12;
         
         this.initElements();
         this.initEventListeners();
@@ -65,6 +74,10 @@ class ColorSortGame {
         this.restartBtn = document.getElementById('restartBtn');
         this.continueBtn = document.getElementById('continueBtn');
         this.difficultyBtns = document.querySelectorAll('.difficulty-btn');
+        this.speedBtns = document.querySelectorAll('.speed-btn');
+        this.speedSlider = document.getElementById('speedSlider');
+        this.speedValue = document.getElementById('speedValue');
+        this.pauseBtn = document.getElementById('pauseBtn');
     }
 
     initEventListeners() {
@@ -75,6 +88,22 @@ class ColorSortGame {
                 this.difficulty = btn.dataset.difficulty;
                 this.initGame();
             });
+        });
+
+        this.speedBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.speedBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.setSpeedPreset(btn.dataset.speed);
+            });
+        });
+
+        this.speedSlider.addEventListener('input', (e) => {
+            this.setCustomSpeed(parseFloat(e.target.value));
+        });
+
+        this.pauseBtn.addEventListener('click', () => {
+            this.togglePause();
         });
 
         this.restartBtn.addEventListener('click', () => this.initGame());
@@ -93,6 +122,35 @@ class ColorSortGame {
         this.dotsArea.addEventListener('touchend', () => this.handleDragEnd());
     }
 
+    setSpeedPreset(preset) {
+        this.currentSpeedPreset = preset;
+        const config = CONFIG.speedPresets[preset];
+        this.customDampening = config.dampening;
+        this.speedSlider.value = config.dampening;
+        this.speedValue.textContent = config.dampening.toFixed(2);
+    }
+
+    setCustomSpeed(value) {
+        this.customDampening = value;
+        this.speedValue.textContent = value.toFixed(2);
+        this.speedBtns.forEach(b => b.classList.remove('active'));
+    }
+
+    togglePause() {
+        this.isPaused = !this.isPaused;
+        if (this.isPaused) {
+            this.pauseBtn.textContent = '▶ 继续';
+            this.pauseBtn.classList.add('paused');
+            this.dotsArea.style.pointerEvents = 'none';
+            this.dotsArea.style.opacity = '0.5';
+        } else {
+            this.pauseBtn.textContent = '⏸ 暂停';
+            this.pauseBtn.classList.remove('paused');
+            this.dotsArea.style.pointerEvents = 'auto';
+            this.dotsArea.style.opacity = '1';
+        }
+    }
+
     initGame() {
         this.dots = [];
         this.containers = [];
@@ -100,6 +158,10 @@ class ColorSortGame {
         this.containersArea.innerHTML = '';
         this.dotsArea.innerHTML = '';
         this.gameOverlay.classList.remove('show');
+        
+        if (this.isPaused) {
+            this.togglePause();
+        }
 
         this.generateContainers();
         this.generateDots();
@@ -253,10 +315,11 @@ class ColorSortGame {
     }
 
     smoothDrag() {
-        this.velocity.x += (this.targetPosition.x - this.currentPosition.x) * CONFIG.dampeningFactor;
-        this.velocity.y += (this.targetPosition.y - this.currentPosition.y) * CONFIG.dampeningFactor;
-        this.velocity.x *= CONFIG.velocityDecay;
-        this.velocity.y *= CONFIG.velocityDecay;
+        const currentDecay = this.getDecayFromDampening(this.customDampening);
+        this.velocity.x += (this.targetPosition.x - this.currentPosition.x) * this.customDampening;
+        this.velocity.y += (this.targetPosition.y - this.currentPosition.y) * this.customDampening;
+        this.velocity.x *= currentDecay;
+        this.velocity.y *= currentDecay;
 
         this.currentPosition.x += this.velocity.x;
         this.currentPosition.y += this.velocity.y;
@@ -273,6 +336,13 @@ class ColorSortGame {
         } else {
             this.animationId = null;
         }
+    }
+
+    getDecayFromDampening(dampening) {
+        if (dampening <= 0.06) return 0.92;
+        if (dampening <= 0.12) return 0.88;
+        if (dampening <= 0.2) return 0.82;
+        return 0.75;
     }
 
     handleDragEnd() {

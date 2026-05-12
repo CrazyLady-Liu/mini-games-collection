@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字符闲排</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>字符闲排</h1>
+            <p class="game-desc">佛系脑力放松，工位碎片化摸鱼</p>
+        </header>
+
+        <div class="game-settings">
+            <div class="setting-group">
+                <label for="gameMode">游戏模式：</label>
+                <select id="gameMode">
+                    <option value="numbers">数字排序</option>
+                    <option value="letters">字母排序</option>
+                    <option value="mixed">混合排序</option>
+                </select>
+            </div>
+            <div class="setting-group" id="sortModeGroup">
+                <label for="sortMode">排序规则：</label>
+                <select id="sortMode">
+                    <option value="asc">正序</option>
+                    <option value="desc">倒序</option>
+                </select>
+            </div>
+            <button id="newGameBtn" class="btn-primary">新游戏</button>
+        </div>
+
+        <div class="game-info">
+            <p class="target-info">目标顺序：<span id="targetDisplay"></span></p>
+            <p class="progress-info">已完成：<span id="progressCount">0</span> / <span id="totalCount">0</span></p>
+        </div>
+
+        <div class="game-canvas" id="gameCanvas"></div>
+
+        <div class="success-message" id="successMessage">
+            <div class="success-content">
+                <h2>🎉 恭喜通关！</h2>
+                <p>太棒了，全部点选完成！</p>
+                <button id="playAgainBtn" class="btn-primary">再来一局</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

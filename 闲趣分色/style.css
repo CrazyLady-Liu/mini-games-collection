@@ -87,6 +87,95 @@ body {
     box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
 }
 
+.control-panel {
+    padding: 15px 30px;
+    background: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #eee;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.speed-control {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.control-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.speed-btns {
+    display: flex;
+    gap: 8px;
+}
+
+.speed-btn {
+    padding: 6px 16px;
+    border: 2px solid #007AFF;
+    background: #fff;
+    color: #007AFF;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.speed-btn:hover {
+    background: #007AFF;
+    color: white;
+}
+
+.speed-btn.active {
+    background: #007AFF;
+    color: white;
+}
+
+.slider-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#speedSlider {
+    width: 120px;
+    cursor: pointer;
+    accent-color: #007AFF;
+}
+
+#speedValue {
+    font-size: 13px;
+    color: #666;
+    min-width: 40px;
+}
+
+.pause-btn {
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #5856D6 0%, #AF52DE 100%);
+    border: none;
+    color: white;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pause-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(88, 86, 214, 0.4);
+}
+
+.pause-btn.paused {
+    background: linear-gradient(135deg, #34C759 0%, #30D158 100%);
+}
+
 .game-area {
     flex: 1;
     display: flex;
