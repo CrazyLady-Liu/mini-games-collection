@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>小车慢行记</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        #gameCanvas {
+            display: block;
+            background: #87CEEB;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: rgba(135, 206, 235, 0.3);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            padding: 12px 20px;
+            pointer-events: none;
+        }
+
+        #ui > div {
+            flex: 1;
+            text-align: center;
+        }
+
+        #distance {
+            font-size: 18px;
+        }
+
+        #score {
+            font-size: 18px;
+        }
+
+        #status {
+            font-size: 18px;
+        }
+
+        #status.warning {
+            color: #FFD700;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        #pauseBtn {
+            background: linear-gradient(145deg, #f6d365, #fda085);
+            color: #333;
+        }
+
+        #restartBtn {
+            background: linear-gradient(145deg, #4facfe, #00f2fe);
+            color: #fff;
+        }
+
+        #howToPlayBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            color: white;
+            z-index: 5;
+        }
+
+        #howToPlayModal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        #howToPlayModal .modal-content {
+            background: linear-gradient(145deg, #2d3748, #1a202c);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            color: white;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #howToPlayModal .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #howToPlayModal .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        #howToPlayModal h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #f6d365;
+        }
+
+        #howToPlayModal .instruction-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        #howToPlayModal .instruction-item .icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        #howToPlayModal .instruction-item .content {
+            flex: 1;
+        }
+
+        #howToPlayModal .instruction-item h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #fda085;
+        }
+
+        #howToPlayModal .instruction-item p {
+            font-size: 14px;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        #howToPlayModal .tips {
+            background: rgba(246, 211, 101, 0.1);
+            border-left: 4px solid #f6d365;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        #howToPlayModal .tips p {
+            font-size: 14px;
+            color: #f6d365;
+        }
+
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10;
+        }
+
+        #startScreen h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        #startScreen p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        #startBtn {
+            padding: 15px 50px;
+            font-size: 22px;
+            background: linear-gradient(145deg, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+            transition: all 0.3s;
+        }
+
+        #startBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(79, 172, 254, 0.5);
+        }
+
+        .instructions {
+            margin-top: 25px;
+            font-size: 14px;
+            opacity: 0.8;
+            text-align: center;
+            line-height: 1.8;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui">
+            <div id="distance">距离: 0m</div>
+            <div id="score">分数: 0</div>
+            <div id="status">正常行驶中</div>
+        </div>
+        <div id="controls">
+            <button id="pauseBtn" class="btn">暂停</button>
+            <button id="restartBtn" class="btn">重新开始</button>
+        </div>
+        <button id="howToPlayBtn" class="btn">如何玩</button>
+        <div id="howToPlayModal" class="hidden">
+            <div class="modal-content">
+                <button class="close-btn" id="closeModalBtn">×</button>
+                <h2>🎮 如何玩</h2>
+                
+                <div class="instruction-item">
+                    <div class="icon">⬅️</div>
+                    <div class="content">
+                        <h3>左右控制</h3>
+                        <p>使用 ← → 方向键、鼠标滑动或设备倾斜来控制小车左右移动</p>
+                    </div>
+                </div>
+
+                <div class="instruction-item">
+                    <div class="icon">⚡</div>
+                    <div class="content">
+                        <h3>加速前进</h3>
+                        <p>长按 ↑ 方向键或空格键触发加速模式，速度提升，难度轻微增加</p>
+                    </div>
+                </div>
+
+                <div class="instruction-item">
+                    <div class="icon">🛤️</div>
+                    <div class="content">
+                        <h3>保持在赛道内</h3>
+                        <p>小车会自动匀速前进，你需要保持它在弯曲的赛道内行驶</p>
+                    </div>
+                </div>
+
+                <div class="instruction-item">
+                    <div class="icon">🔄</div>
+                    <div class="content">
+                        <h3>出界处理</h3>
+                        <p>如果小车冲出赛道，会自动回弹并产生震动提示，无失败惩罚</p>
+                    </div>
+                </div>
+
+                <div class="tips">
+                    <p>💡 提示：佛系休闲玩法，放松心态，享受驾驶的乐趣！</p>
+                </div>
+            </div>
+        </div>
+        <div id="startScreen">
+            <h1>小车慢行记</h1>
+            <p>保持小车在赛道内行驶，看你能走多远！</p>
+            <button id="startBtn">开始游戏</button>
+            <div class="instructions">
+                ← → 方向键 或 鼠标控制左右移动<br>
+                长按 ↑ 方向键 / 空格键触发加速<br>
+                手机用户可使用倾斜传感器
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('gameContainer');
+        const distanceDisplay = document.getElementById('distance');
+        const scoreDisplay = document.getElementById('score');
+        const statusDisplay = document.getElementById('status');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const startScreen = document.getElementById('startScreen');
+        const startBtn = document.getElementById('startBtn');
+        const howToPlayBtn = document.getElementById('howToPlayBtn');
+        const howToPlayModal = document.getElementById('howToPlayModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        canvas.width = 800;
+        canvas.height = 600;
+
+        const CAR_WIDTH = 50;
+        const CAR_HEIGHT = 80;
+        const ROAD_WIDTH = 300;
+        const FORWARD_SPEED = 2;
+        const BOOST_SPEED = 3.5;
+        const BOOST_FREQUENCY_MULTIPLIER = 1.3;
+
+        let gameState = {
+            isRunning: false,
+            isPaused: false,
+            isBoosting: false,
+            distance: 0,
+            score: 0,
+            carX: canvas.width / 2,
+            carY: canvas.height - 150,
+            carSpeedX: 0,
+            offsetY: 0,
+            shakeOffset: { x: 0, y: 0 },
+            shakeIntensity: 0
+        };
+
+        let pathPoints = [];
+        let currentPathIndex = 0;
+
+        let keys = {
+            left: false,
+            right: false,
+            up: false
+        };
+
+        let touchStartX = null;
+        let deviceOrientationEnabled = false;
+
+        function initPath() {
+            pathPoints = [];
+            currentPathIndex = 0;
+            
+            for (let i = 0; i < 200; i++) {
+                const progress = i / 200;
+                const baseX = canvas.width / 2;
+                const amplitude = 150 * Math.sin(progress * Math.PI * 3);
+                const frequency = 0.02;
+                const offsetX = amplitude * Math.sin(i * frequency * Math.PI * 2);
+                
+                pathPoints.push({
+                    x: baseX + offsetX,
+                    y: -i * 30 + canvas.height,
+                    width: ROAD_WIDTH - 20 * Math.sin(progress * Math.PI)
+                });
+            }
+        }
+
+        function drawSky() {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(0.5, '#B0E0E6');
+            gradient.addColorStop(1, '#98D8C8');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            for (let i = 0; i < 5; i++) {
+                const cloudX = (gameState.distance * 0.5 + i * 200) % (canvas.width + 200) - 100;
+                const cloudY = 50 + i * 40;
+                drawCloud(cloudX, cloudY);
+            }
+        }
+
+        function drawCloud(x, y) {
+            ctx.beginPath();
+            ctx.arc(x, y, 25, 0, Math.PI * 2);
+            ctx.arc(x + 25, y - 10, 30, 0, Math.PI * 2);
+            ctx.arc(x + 50, y, 25, 0, Math.PI * 2);
+            ctx.arc(x + 25, y + 10, 20, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawPath() {
+            for (let i = currentPathIndex; i < Math.min(currentPathIndex + 25, pathPoints.length); i++) {
+                const point = pathPoints[i];
+                const nextPoint = pathPoints[i + 1];
+                
+                if (!nextPoint) continue;
+
+                const displayY = point.y + gameState.offsetY;
+                const nextDisplayY = nextPoint.y + gameState.offsetY;
+
+                const grassGradient = ctx.createLinearGradient(0, displayY, 0, nextDisplayY);
+                grassGradient.addColorStop(0, '#228B22');
+                grassGradient.addColorStop(1, '#32CD32');
+                ctx.fillStyle = grassGradient;
+                ctx.fillRect(0, displayY, canvas.width, 30);
+
+                const roadLeft = point.x - point.width / 2;
+                const roadRight = point.x + point.width / 2;
+                const nextRoadLeft = nextPoint.x - nextPoint.width / 2;
+                const nextRoadRight = nextPoint.x + nextPoint.width / 2;
+
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = point.width + 20;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(point.x, displayY);
+                ctx.lineTo(nextPoint.x, nextDisplayY);
+                ctx.stroke();
+
+                ctx.strokeStyle = '#D2691E';
+                ctx.lineWidth = point.width;
+                ctx.beginPath();
+                ctx.moveTo(point.x, displayY);
+                ctx.lineTo(nextPoint.x, nextDisplayY);
+                ctx.stroke();
+
+                ctx.strokeStyle = '#FFFACD';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([20, 20]);
+                ctx.beginPath();
+                ctx.moveTo(point.x, displayY);
+                ctx.lineTo(nextPoint.x, nextDisplayY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = '#FF6347';
+                ctx.beginPath();
+                ctx.arc(roadLeft - 10, displayY + 15, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(roadRight + 10, displayY + 15, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawCar() {
+            const carDrawX = gameState.carX + gameState.shakeOffset.x;
+            const carDrawY = gameState.carY + gameState.shakeOffset.y;
+
+            ctx.save();
+            ctx.translate(carDrawX, carDrawY);
+
+            ctx.fillStyle = '#DC143C';
+            ctx.beginPath();
+            ctx.moveTo(-CAR_WIDTH/2 + 10, CAR_HEIGHT/2);
+            ctx.lineTo(-CAR_WIDTH/2, -CAR_HEIGHT/2 + 20);
+            ctx.lineTo(-CAR_WIDTH/2 + 15, -CAR_HEIGHT/2);
+            ctx.lineTo(CAR_WIDTH/2 - 15, -CAR_HEIGHT/2);
+            ctx.lineTo(CAR_WIDTH/2, -CAR_HEIGHT/2 + 20);
+            ctx.lineTo(CAR_WIDTH/2 - 10, CAR_HEIGHT/2);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.moveTo(-CAR_WIDTH/2 + 15, -CAR_HEIGHT/2);
+            ctx.lineTo(-CAR_WIDTH/2 + 18, -CAR_HEIGHT/2 + 15);
+            ctx.lineTo(CAR_WIDTH/2 - 18, -CAR_HEIGHT/2 + 15);
+            ctx.lineTo(CAR_WIDTH/2 - 15, -CAR_HEIGHT/2);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(-CAR_WIDTH/2 + 18, -CAR_HEIGHT/2 + 17, CAR_WIDTH - 36, 20);
+
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(-CAR_WIDTH/2 + 12, CAR_HEIGHT/2 - 10, 10, 0, Math.PI * 2);
+            ctx.arc(CAR_WIDTH/2 - 12, CAR_HEIGHT/2 - 10, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#666';
+            ctx.beginPath();
+            ctx.arc(-CAR_WIDTH/2 + 12, CAR_HEIGHT/2 - 10, 6, 0, Math.PI * 2);
+            ctx.arc(CAR_WIDTH/2 - 12, CAR_HEIGHT/2 - 10, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#FF4444';
+            ctx.beginPath();
+            ctx.arc(-CAR_WIDTH/2 + 8, -CAR_HEIGHT/2 + 25, 5, 0, Math.PI * 2);
+            ctx.arc(CAR_WIDTH/2 - 8, -CAR_HEIGHT/2 + 25, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function updateCar() {
+            const moveSpeed = 5;
+            
+            if (keys.left) {
+                gameState.carSpeedX = -moveSpeed;
+            } else if (keys.right) {
+                gameState.carSpeedX = moveSpeed;
+            } else {
+                gameState.carSpeedX *= 0.9;
+            }
+
+            gameState.carX += gameState.carSpeedX;
+
+            const halfCarWidth = CAR_WIDTH / 2;
+            if (gameState.carX < halfCarWidth) {
+                gameState.carX = halfCarWidth;
+                gameState.carSpeedX = 0;
+                triggerShake(8);
+            } else if (gameState.carX > canvas.width - halfCarWidth) {
+                gameState.carX = canvas.width - halfCarWidth;
+                gameState.carSpeedX = 0;
+                triggerShake(8);
+            }
+
+            checkCollision();
+        }
+
+        function checkCollision() {
+            const carCenterY = gameState.carY;
+            let closestPoint = null;
+            let minDistance = Infinity;
+
+            for (let i = currentPathIndex; i < Math.min(currentPathIndex + 15, pathPoints.length); i++) {
+                const point = pathPoints[i];
+                const displayY = point.y + gameState.offsetY;
+                const distance = Math.abs(displayY - carCenterY);
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestPoint = point;
+                }
+            }
+
+            if (closestPoint) {
+                const roadLeft = closestPoint.x - closestPoint.width / 2;
+                const roadRight = closestPoint.x + closestPoint.width / 2;
+                const carLeft = gameState.carX - CAR_WIDTH / 2;
+                const carRight = gameState.carX + CAR_WIDTH / 2;
+
+                if (carLeft < roadLeft || carRight > roadRight) {
+                    if (carLeft < roadLeft) {
+                        gameState.carX = roadLeft + CAR_WIDTH / 2;
+                        triggerShake(8);
+                    } else if (carRight > roadRight) {
+                        gameState.carX = roadRight - CAR_WIDTH / 2;
+                        triggerShake(8);
+                    }
+                    statusDisplay.textContent = '偏离赛道！';
+                    statusDisplay.classList.add('warning');
+                    setTimeout(() => {
+                        if (gameState.isRunning && !gameState.isPaused) {
+                            statusDisplay.textContent = '正常行驶中';
+                            statusDisplay.classList.remove('warning');
+                        }
+                    }, 500);
+                }
+            }
+        }
+
+        function triggerShake(intensity) {
+            gameState.shakeIntensity = intensity;
+        }
+
+        function updateShake() {
+            if (gameState.shakeIntensity > 0) {
+                gameState.shakeOffset.x = (Math.random() - 0.5) * gameState.shakeIntensity;
+                gameState.shakeOffset.y = (Math.random() - 0.5) * gameState.shakeIntensity;
+                gameState.shakeIntensity *= 0.9;
+                
+                if (gameState.shakeIntensity < 0.5) {
+                    gameState.shakeIntensity = 0;
+                    gameState.shakeOffset.x = 0;
+                    gameState.shakeOffset.y = 0;
+                }
+            }
+        }
+
+        function updatePath() {
+            const currentSpeed = gameState.isBoosting ? BOOST_SPEED : FORWARD_SPEED;
+            const frequencyMultiplier = gameState.isBoosting ? BOOST_FREQUENCY_MULTIPLIER : 1;
+            
+            gameState.offsetY += currentSpeed;
+            gameState.distance += currentSpeed * 0.1 * frequencyMultiplier;
+
+            if (gameState.offsetY >= 30) {
+                gameState.offsetY -= 30;
+                currentPathIndex++;
+                
+                if (currentPathIndex >= pathPoints.length - 30) {
+                    extendPath(frequencyMultiplier);
+                }
+            }
+        }
+
+        function extendPath(frequencyMultiplier = 1) {
+            const lastPoint = pathPoints[pathPoints.length - 1];
+            const startIndex = pathPoints.length;
+            
+            for (let i = 0; i < 50; i++) {
+                const progress = (startIndex + i) / 200;
+                const baseX = canvas.width / 2;
+                const amplitude = 150 * Math.sin(progress * Math.PI * 3);
+                const frequency = 0.02 * frequencyMultiplier;
+                const offsetX = amplitude * Math.sin((startIndex + i) * frequency * Math.PI * 2);
+                
+                pathPoints.push({
+                    x: baseX + offsetX,
+                    y: lastPoint.y - (i + 1) * 30,
+                    width: ROAD_WIDTH - 20 * Math.sin(progress * Math.PI)
+                });
+            }
+        }
+
+        function update() {
+            if (!gameState.isRunning || gameState.isPaused) return;
+
+            updateCar();
+            updatePath();
+            updateShake();
+
+            gameState.score = Math.floor(gameState.distance * 10);
+            distanceDisplay.textContent = `距离: ${Math.floor(gameState.distance)}m`;
+            scoreDisplay.textContent = `分数: ${gameState.score}`;
+            
+            if (gameState.isBoosting) {
+                statusDisplay.textContent = '加速中！';
+                statusDisplay.style.color = '#FF6B6B';
+            } else if (!statusDisplay.textContent.includes('偏离')) {
+                statusDisplay.textContent = '正常行驶中';
+                statusDisplay.classList.remove('warning');
+                statusDisplay.style.color = '';
+            }
+        }
+
+        function draw() {
+            ctx.save();
+            ctx.translate(gameState.shakeOffset.x, gameState.shakeOffset.y);
+            
+            drawSky();
+            drawPath();
+            drawCar();
+            
+            ctx.restore();
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            gameState = {
+                isRunning: true,
+                isPaused: false,
+                isBoosting: false,
+                distance: 0,
+                score: 0,
+                carX: canvas.width / 2,
+                carY: canvas.height - 150,
+                carSpeedX: 0,
+                offsetY: 0,
+                shakeOffset: { x: 0, y: 0 },
+                shakeIntensity: 0
+            };
+            
+            initPath();
+            startScreen.classList.add('hidden');
+            pauseBtn.textContent = '暂停';
+            statusDisplay.textContent = '正常行驶中';
+            statusDisplay.classList.remove('warning');
+            statusDisplay.style.color = '';
+            distanceDisplay.textContent = '距离: 0m';
+            scoreDisplay.textContent = '分数: 0';
+        }
+
+        function togglePause() {
+            if (!gameState.isRunning) return;
+            
+            gameState.isPaused = !gameState.isPaused;
+            pauseBtn.textContent = gameState.isPaused ? '继续' : '暂停';
+            
+            if (gameState.isPaused) {
+                gameState.isBoosting = false;
+                keys.up = false;
+                statusDisplay.textContent = '已暂停';
+                statusDisplay.classList.remove('warning');
+                statusDisplay.style.color = '#87CEEB';
+            } else {
+                statusDisplay.textContent = '正常行驶中';
+                statusDisplay.classList.remove('warning');
+                statusDisplay.style.color = '';
+            }
+        }
+
+        function handleKeyDown(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'Left') {
+                keys.left = true;
+                e.preventDefault();
+            } else if (e.key === 'ArrowRight' || e.key === 'Right') {
+                keys.right = true;
+                e.preventDefault();
+            } else if (e.key === 'ArrowUp' || e.key === 'Up') {
+                if (gameState.isRunning && !gameState.isPaused) {
+                    keys.up = true;
+                    gameState.isBoosting = true;
+                }
+                e.preventDefault();
+            } else if (e.key === ' ') {
+                if (gameState.isRunning && !gameState.isPaused) {
+                    keys.up = true;
+                    gameState.isBoosting = true;
+                }
+                e.preventDefault();
+            } else if (e.key === 'Escape') {
+                togglePause();
+                e.preventDefault();
+            }
+        }
+
+        function handleKeyUp(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'Left') {
+                keys.left = false;
+            } else if (e.key === 'ArrowRight' || e.key === 'Right') {
+                keys.right = false;
+            } else if (e.key === 'ArrowUp' || e.key === 'Up') {
+                keys.up = false;
+                gameState.isBoosting = false;
+            } else if (e.key === ' ') {
+                keys.up = false;
+                gameState.isBoosting = false;
+            }
+        }
+
+        function handleMouseDown(e) {
+            if (gameState.isPaused) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            touchStartX = mouseX;
+        }
+
+        function handleMouseMove(e) {
+            if (gameState.isPaused || touchStartX === null) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const diff = mouseX - touchStartX;
+            
+            if (Math.abs(diff) > 5) {
+                if (diff < 0) {
+                    keys.left = true;
+                    keys.right = false;
+                } else {
+                    keys.right = true;
+                    keys.left = false;
+                }
+                touchStartX = mouseX;
+            }
+        }
+
+        function handleMouseUp() {
+            touchStartX = null;
+            keys.left = false;
+            keys.right = false;
+        }
+
+        function handleTouchStart(e) {
+            if (e.touches.length === 1) {
+                touchStartX = e.touches[0].clientX;
+                e.preventDefault();
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (e.touches.length === 1 && touchStartX !== null) {
+                const touchX = e.touches[0].clientX;
+                const diff = touchX - touchStartX;
+                
+                keys.left = diff < -10;
+                keys.right = diff > 10;
+                
+                if (Math.abs(diff) > 10) {
+                    touchStartX = touchX;
+                }
+                e.preventDefault();
+            }
+        }
+
+        function handleTouchEnd() {
+            touchStartX = null;
+            keys.left = false;
+            keys.right = false;
+        }
+
+        function handleDeviceOrientation(e) {
+            if (!gameState.isRunning || gameState.isPaused) return;
+            
+            if (e.gamma !== null) {
+                deviceOrientationEnabled = true;
+                const tilt = e.gamma;
+                
+                if (tilt < -10) {
+                    keys.left = true;
+                    keys.right = false;
+                } else if (tilt > 10) {
+                    keys.right = true;
+                    keys.left = false;
+                } else {
+                    keys.left = false;
+                    keys.right = false;
+                }
+            }
+        }
+
+        function initEventListeners() {
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('mouseleave', handleMouseUp);
+            
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd);
+            
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener('deviceorientation', handleDeviceOrientation);
+            }
+            
+            startBtn.addEventListener('click', startGame);
+            pauseBtn.addEventListener('click', togglePause);
+            restartBtn.addEventListener('click', startGame);
+            
+            howToPlayBtn.addEventListener('click', function() {
+                howToPlayModal.classList.remove('hidden');
+            });
+            
+            closeModalBtn.addEventListener('click', function() {
+                howToPlayModal.classList.add('hidden');
+            });
+            
+            howToPlayModal.addEventListener('click', function(e) {
+                if (e.target === howToPlayModal) {
+                    howToPlayModal.classList.add('hidden');
+                }
+            });
+        }
+
+        initPath();
+        initEventListeners();
+        gameLoop();
+    </script>
+</body>
+</html>
