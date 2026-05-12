@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>轻划成形</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>轻划成形</h1>
+            <div class="score-board">
+                <span>得分: <span id="score">0</span></span>
+                <span>图形: <span id="shape-name">-</span></span>
+            </div>
+        </header>
+
+        <main>
+            <div class="canvas-wrapper">
+                <canvas id="reference-canvas"></canvas>
+                <canvas id="draw-canvas"></canvas>
+                <div class="game-message" id="game-message"></div>
+            </div>
+
+            <div class="controls">
+                <div class="pool-control">
+                    <button id="pool-buddha" class="pool-btn active">佛系池</button>
+                    <button id="pool-casual" class="pool-btn">休闲池</button>
+                </div>
+                <div class="action-buttons">
+                    <button id="next-btn">下一个</button>
+                    <button id="reset-btn">重画</button>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h3>游戏说明</h3>
+                <ul>
+                    <li>沿着参考轮廓一笔画完整个图形</li>
+                    <li>不能抬笔，不能重复画线</li>
+                    <li>贴合轮廓路径才能得分</li>
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>叠方摸鱼记</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>叠方摸鱼记</h1>
+            <div class="score-board">
+                <span>高度: <span id="score">0</span></span>
+            </div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="controls">
+            <div class="mode-selector">
+                <button id="zenMode" class="mode-btn active">佛系模式</button>
+                <button id="activeMode" class="mode-btn">轻快模式</button>
+            </div>
+            <div class="speed-section">
+                <h3>下落速度控制</h3>
+                <div class="speed-preset">
+                    <button id="speedIdle" class="speed-btn">工位挂机</button>
+                    <button id="speedEasy" class="speed-btn active">简单</button>
+                    <button id="speedNormal" class="speed-btn">普通</button>
+                    <button id="speedHard" class="speed-btn">困难</button>
+                </div>
+                <div class="speed-custom">
+                    <div class="speed-row">
+                        <label>自定义速度: <span id="speedValue">0.8</span></label>
+                        <button id="pauseBtn" class="pause-btn">暂停</button>
+                    </div>
+                    <input type="range" id="speedSlider" min="0.1" max="5" step="0.1" value="0.8">
+                </div>
+            </div>
+            <div class="extra-controls">
+                <button id="autoMode" class="extra-btn">挂机模式</button>
+                <button id="centerBtn" class="extra-btn">一键居中</button>
+            </div>
+            <div class="sensitivity-control">
+                <label>灵敏度: <span id="sensitivityValue">50</span>%</label>
+                <input type="range" id="sensitivity" min="10" max="100" value="50">
+            </div>
+            <div class="info">
+                <p>← → 或 滑动控制方块</p>
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
