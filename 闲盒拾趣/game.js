@@ -2,6 +2,7 @@ const Game = {
     coins: 100,
     collection: [],
     isAnimating: false,
+    effectsEnabled: true,
 
     collectionPool: {
         common: [
@@ -45,13 +46,16 @@ const Game = {
             const data = JSON.parse(saved);
             this.coins = data.coins || 100;
             this.collection = data.collection || [];
+            this.effectsEnabled = data.effectsEnabled !== false;
         }
+        this.updateEffectsButton();
     },
 
     saveGameState() {
         localStorage.setItem('xianheGame', JSON.stringify({
             coins: this.coins,
-            collection: this.collection
+            collection: this.collection,
+            effectsEnabled: this.effectsEnabled
         }));
     },
 
@@ -60,6 +64,24 @@ const Game = {
         document.getElementById('close-popup').addEventListener('click', () => this.closePopup());
         document.getElementById('collection-btn').addEventListener('click', () => this.showCollection());
         document.getElementById('close-modal').addEventListener('click', () => this.hideCollection());
+        document.getElementById('effects-toggle').addEventListener('click', () => this.toggleEffects());
+    },
+
+    toggleEffects() {
+        this.effectsEnabled = !this.effectsEnabled;
+        this.updateEffectsButton();
+        this.saveGameState();
+    },
+
+    updateEffectsButton() {
+        const btn = document.getElementById('effects-toggle');
+        if (this.effectsEnabled) {
+            btn.textContent = '✨ 特效';
+            btn.className = 'btn effects-on';
+        } else {
+            btn.textContent = '🔇 摸鱼';
+            btn.className = 'btn effects-off';
+        }
     },
 
     updateUI() {
@@ -79,6 +101,45 @@ const Game = {
         return items[Math.floor(Math.random() * items.length)];
     },
 
+    createParticles(color, count = 8) {
+        if (!this.effectsEnabled) return;
+        
+        const container = document.getElementById('particles-container');
+        const colors = color ? [color] : ['#FFD700', '#FFA500', '#FF69B4', '#00CED1', '#9370DB'];
+        
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            const size = Math.random() * 6 + 3;
+            const startX = 150;
+            const startY = 150;
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * 80 + 40;
+            const finalX = startX + Math.cos(angle) * distance;
+            const finalY = startY + Math.sin(angle) * distance;
+            
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.left = `${startX}px`;
+            particle.style.top = `${startY}px`;
+            particle.style.opacity = '0.6';
+            particle.style.boxShadow = `0 0 ${size * 0.5}px ${particle.style.backgroundColor}`;
+            
+            container.appendChild(particle);
+            
+            particle.animate([
+                { transform: 'scale(1)', opacity: 0.6, left: `${startX}px`, top: `${startY}px` },
+                { transform: 'scale(0)', opacity: 0, left: `${finalX}px`, top: `${finalY}px` }
+            ], {
+                duration: 1200 + Math.random() * 600,
+                easing: 'ease-out',
+                fill: 'forwards'
+            }).onfinish = () => particle.remove();
+        }
+    },
+
     async openBlindBox() {
         if (this.isAnimating || this.coins < 10) {
             if (this.coins < 10) alert('金币不足！');
@@ -93,18 +154,36 @@ const Game = {
         const openBtn = document.getElementById('open-btn');
         openBtn.disabled = true;
 
-        blindBox.classList.add('shaking');
-        await this.sleep(500);
-        blindBox.classList.remove('shaking');
-        blindBox.classList.add('opening');
-
-        await this.sleep(800);
-
         const item = this.generateItem();
         this.addToCollection(item);
+
+        if (item.rarity === 'common') {
+            blindBox.classList.add('opening-slow');
+            await this.sleep(1200);
+        } else {
+            if (this.effectsEnabled) {
+                blindBox.classList.add('vibrating');
+                blindBox.classList.add('shaking');
+                await this.sleep(500);
+                blindBox.classList.remove('shaking');
+                blindBox.classList.remove('vibrating');
+            }
+            blindBox.classList.add('opening');
+            await this.sleep(800);
+
+            if (this.effectsEnabled) {
+                if (item.rarity === 'rare') {
+                    this.createParticles('#87CEEB', 8);
+                } else if (item.rarity === 'limited') {
+                    this.createParticles('#F5DEB3', 8);
+                }
+            }
+        }
+
         this.showResult(item);
 
         blindBox.classList.remove('opening');
+        blindBox.classList.remove('opening-slow');
         this.isAnimating = false;
         openBtn.disabled = false;
         this.saveGameState();
@@ -118,6 +197,9 @@ const Game = {
 
     showResult(item) {
         const popup = document.getElementById('result-popup');
+        const popupContent = popup.querySelector('.popup-content');
+        const itemDisplay = document.getElementById('item-display');
+        
         document.getElementById('item-display').textContent = item.icon;
         document.getElementById('item-name').textContent = item.name;
 
@@ -140,12 +222,30 @@ const Game = {
         }
         rarityEl.textContent = rarityText;
         rarityEl.className = 'item-rarity ' + rarityClass;
+        
+        popupContent.classList.remove('limited-glow');
+        popupContent.classList.remove('common-minimal');
+        itemDisplay.classList.remove('limited-sparkle');
+        
+        if (item.rarity === 'common') {
+            popupContent.classList.add('common-minimal');
+        } else if (this.effectsEnabled && item.rarity === 'limited') {
+            popupContent.classList.add('limited-glow');
+            itemDisplay.classList.add('limited-sparkle');
+        }
 
         popup.classList.add('show');
     },
 
     closePopup() {
-        document.getElementById('result-popup').classList.remove('show');
+        const popup = document.getElementById('result-popup');
+        const popupContent = popup.querySelector('.popup-content');
+        const itemDisplay = document.getElementById('item-display');
+        
+        popup.classList.remove('show');
+        popupContent.classList.remove('limited-glow');
+        popupContent.classList.remove('common-minimal');
+        itemDisplay.classList.remove('limited-sparkle');
     },
 
     showCollection() {

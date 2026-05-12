@@ -151,6 +151,10 @@ header h1 {
     animation: openBox 0.8s ease-out forwards;
 }
 
+.blind-box.opening-slow .box-top {
+    animation: openBoxSlow 1.2s ease-out forwards;
+}
+
 @keyframes shake {
     0%, 100% { transform: rotate(0deg); }
     20% { transform: rotate(-10deg); }
@@ -168,6 +172,11 @@ header h1 {
 @keyframes openBox {
     0% { transform: rotateX(0deg); }
     50% { transform: rotateX(-100deg); }
+    100% { transform: rotateX(-120deg); }
+}
+
+@keyframes openBoxSlow {
+    0% { transform: rotateX(0deg); }
     100% { transform: rotateX(-120deg); }
 }
 
@@ -216,7 +225,16 @@ header h1 {
     padding: 40px;
     border-radius: 20px;
     text-align: center;
-    animation: popIn 0.4s;
+    position: relative;
+}
+
+.popup-content.common-minimal {
+    animation: popInMinimal 0.4s;
+}
+
+.popup-content.limited-glow {
+    box-shadow: 0 0 40px 15px rgba(255, 235, 205, 0.4), 0 0 60px 25px rgba(245, 222, 179, 0.25);
+    animation: popIn 0.4s, softGoldPulse 2s ease-in-out infinite;
 }
 
 @keyframes fadeIn {
@@ -229,9 +247,29 @@ header h1 {
     to { transform: scale(1); opacity: 1; }
 }
 
+@keyframes popInMinimal {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes softGoldPulse {
+    0%, 100% { box-shadow: 0 0 40px 15px rgba(255, 235, 205, 0.4), 0 0 60px 25px rgba(245, 222, 179, 0.25); }
+    50% { box-shadow: 0 0 50px 20px rgba(255, 235, 205, 0.5), 0 0 70px 30px rgba(245, 222, 179, 0.3); }
+}
+
 .item-display {
     font-size: 100px;
     margin: 20px 0;
+    position: relative;
+}
+
+.item-display.limited-sparkle {
+    animation: softGlow 1s ease-in-out 2;
+}
+
+@keyframes softGlow {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.1); }
 }
 
 .item-name {
