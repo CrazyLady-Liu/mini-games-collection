@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>摸鱼接雨滴</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            overflow: hidden;
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 100%);
+            touch-action: none;
+        }
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        #game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        /* 顶部信息栏 - 完全不遮挡游戏区 */
+        #top-info-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            background: rgba(255, 255, 255, 0.9);
+            pointer-events: auto;
+            z-index: 10;
+        }
+        #info-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        #score-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        #difficulty-label {
+            font-size: 16px;
+            color: #666;
+        }
+        #active-effects {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .effect-tag {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+        }
+        #menu-screen, #game-over-screen {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: auto;
+            background: rgba(255,255,255,0.95);
+            padding: 50px 60px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .main-title {
+            font-size: 42px;
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: #999;
+            font-weight: 300;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+        .button-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-block;
+            min-width: 100px;
+            padding: 12px 32px;
+            font-size: 16px;
+            border: 2px solid #87CEEB;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: transparent;
+            color: #555;
+            font-weight: 500;
+        }
+        .btn:hover {
+            background: rgba(135, 206, 235, 0.1);
+        }
+        .btn-easy { border-color: #52c41a; color: #52c41a; }
+        .btn-easy:hover { background: rgba(82, 196, 26, 0.1); }
+        .btn-easy.active { background: #52c41a; color: white; }
+        .btn-normal { border-color: #1890ff; color: #1890ff; }
+        .btn-normal:hover { background: rgba(24, 144, 255, 0.1); }
+        .btn-normal.active { background: #1890ff; color: white; }
+        .btn-hard { border-color: #fa8c16; color: #fa8c16; }
+        .btn-hard:hover { background: rgba(250, 140, 22, 0.1); }
+        .btn-hard.active { background: #fa8c16; color: white; }
+        .btn-restart { background: #4A90A4; color: white; border: none; }
+        .btn-restart:hover { background: #5CA7BB; }
+        .hidden { display: none !important; }
+        #bottom-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .control-btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: 2px solid #87CEEB;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            color: #555;
+            font-weight: 500;
+        }
+        .control-btn:hover {
+            background: #87CEEB;
+            color: white;
+        }
+        .control-btn.active {
+            background: #87CEEB;
+            color: white;
+        }
+        #pause-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+        }
+        #pause-screen .pause-box {
+            background: white;
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        #pause-screen h2 {
+            color: #444;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="ui-overlay">
+            <!-- 顶部信息栏 - 紧贴顶部，不遮挡游戏 -->
+            <div id="top-info-bar">
+                <div id="info-left">
+                    <div id="score-display">分数: 0</div>
+                    <div id="difficulty-label">难度: -</div>
+                </div>
+                <div id="active-effects"></div>
+            </div>
+            <div id="menu-screen">
+                <h1 class="main-title">摸鱼接雨滴</h1>
+                <p class="subtitle">滑动托盘接住雨滴，避开落叶</p>
+                <div class="button-group">
+                    <button class="btn btn-easy" onclick="startGame('easy')">简单</button>
+                    <button class="btn btn-normal" onclick="startGame('normal')">普通</button>
+                    <button class="btn btn-hard" onclick="startGame('hard')">困难</button>
+                </div>
+            </div>
+            <div id="game-over-screen" class="hidden">
+                <h1 class="main-title">游戏结束</h1>
+                <p style="font-size: 24px; margin: 20px 0; color: #555;">最终分数: <span id="final-score">0</span></p>
+                <button class="btn btn-restart" onclick="showMenu()">返回菜单</button>
+            </div>
+            <div id="bottom-controls" class="hidden">
+                <button class="control-btn" id="pause-btn" onclick="togglePause()">暂停</button>
+                <button class="control-btn" id="speed-btn" onclick="toggleSpeed()">速度: 1x</button>
+                <button class="control-btn" id="reset-btn" onclick="resetGame()">重置</button>
+            </div>
+            <div id="pause-screen" class="hidden">
+                <div class="pause-box">
+                    <h2>游戏暂停</h2>
+                    <button class="btn btn-restart" onclick="togglePause()">继续游戏</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

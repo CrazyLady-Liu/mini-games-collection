@@ -1,0 +1,150 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+
+body {
+    overflow: hidden;
+    background: #f8f4eb;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+}
+
+#game-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+#game-info {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    background: transparent;
+    z-index: 10;
+}
+
+.info-item {
+    color: #7a6f61;
+    font-size: 14px;
+    text-align: center;
+}
+
+.info-item span:first-child {
+    margin-right: 5px;
+    font-size: 13px;
+}
+
+.info-item span:last-child {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+#game-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(248, 244, 235, 0.96);
+    z-index: 20;
+}
+
+.screen.hidden {
+    display: none;
+}
+
+.screen h1 {
+    color: #6b5e4f;
+    font-size: 24px;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.screen p {
+    color: #8a7d6b;
+    font-size: 15px;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.screen button {
+    margin-top: 25px;
+    padding: 12px 40px;
+    font-size: 15px;
+    background: #fff;
+    color: #7a6f61;
+    border: 1px solid #e0d5c5;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 400;
+    transition: all 0.2s;
+}
+
+.screen button:hover {
+    background: #faf7f0;
+    border-color: #d4c8b8;
+}
+
+.screen button:active {
+    background: #f5f0e6;
+}
+
+#start-btn {
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    margin-top: 30px;
+    transition: transform 0.2s;
+}
+
+#start-btn:hover {
+    transform: scale(1.05);
+    background: transparent;
+}
+
+#start-btn:active {
+    transform: scale(0.98);
+    background: transparent;
+}
+
+.cartoon-btn {
+    width: 160px;
+    height: 160px;
+    position: relative;
+}
+
+.cartoon-btn svg {
+    width: 100%;
+    height: 100%;
+}
+
+.btn-text {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 16px;
+    color: #7a6f61;
+    font-weight: 500;
+}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>片影识形</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>片影识形</h1>
+            <div class="level-display">
+                <span>第 <span id="currentLevel">1</span> 关</span>
+            </div>
+        </header>
+        
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="basic">基础模式</button>
+            <button class="mode-btn" data-mode="reverse">反向模式</button>
+            <button class="mode-btn" data-mode="puzzle">拼图模式</button>
+            <button class="mode-btn" data-mode="gradient">渐变模式</button>
+        </div>
+        
+        <div class="score-display" id="scoreDisplay" style="display: none;">
+            <span>得分: <span id="currentScore">0</span></span>
+        </div>
+        
+        <main class="game-main">
+            <div class="canvas-wrapper">
+                <canvas id="gameCanvas" width="400" height="400"></canvas>
+            </div>
+            
+            <div class="options-container" id="optionsContainer"></div>
+            
+            <div class="message" id="message"></div>
+        </main>
+        
+        <footer class="game-footer">
+            <button class="btn btn-primary" id="nextBtn" style="display: none;">下一关</button>
+            <button class="btn btn-secondary" id="retryBtn" style="display: none;">重试</button>
+        </footer>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>

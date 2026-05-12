@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微控时刻</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            user-select: none;
+        }
+
+        .game-container {
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .stat {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.95rem;
+            font-weight: 300;
+        }
+
+        .clock-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto 25px;
+            cursor: pointer;
+        }
+
+        .clock {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #ffffff;
+            position: relative;
+        }
+
+        .clock-center {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .second-hand {
+            position: absolute;
+            width: 2px;
+            height: 125px;
+            background: #e74c3c;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(0deg);
+            z-index: 5;
+        }
+
+        .second-hand::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .clock-numbers {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .number {
+            position: absolute;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #333;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+        }
+
+        .clock-marks {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .mark {
+            position: absolute;
+            background: #666;
+            width: 1px;
+            height: 10px;
+            top: 18px;
+            left: 50%;
+            transform-origin: bottom center;
+        }
+
+        .mark.major {
+            display: none;
+        }
+
+        .target-mark {
+            position: absolute;
+            width: 4px;
+            height: 18px;
+            background: #2ecc71;
+            top: 20px;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(0deg);
+        }
+
+        .target-mark-2 {
+            position: absolute;
+            width: 4px;
+            height: 18px;
+            background: #3498db;
+            top: 20px;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(0deg);
+        }
+
+        .status {
+            color: white;
+            font-size: 1.1rem;
+            margin-bottom: 18px;
+            min-height: 32px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .status.show {
+            opacity: 1;
+        }
+
+        .success {
+            color: rgba(255,255,255,0.9);
+            font-weight: 500;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 10px 32px;
+            font-size: 0.95rem;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 400;
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .instruction {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+            margin-top: 20px;
+            max-width: 360px;
+            line-height: 1.6;
+        }
+
+        .click-hint {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.6);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>微控时刻</h1>
+        
+        <div class="stats">
+            <div class="stat">第 <span id="level">1</span> 关</div>
+            <div class="stat">最高 <span id="best">0</span> 关</div>
+        </div>
+        
+        <div class="clock-container" id="clock-container">
+            <div class="clock">
+                <div class="clock-marks" id="clock-marks"></div>
+                <div class="clock-numbers" id="clock-numbers"></div>
+                <div class="target-mark" id="target-mark"></div>
+                <div class="target-mark-2" id="target-mark-2"></div>
+                <div class="second-hand" id="second-hand"></div>
+                <div class="clock-center"></div>
+            </div>
+            <div class="click-hint" id="click-hint">点击让秒针停下</div>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="controls">
+            <button class="btn" id="reset-btn">重新开始</button>
+        </div>
+        
+        <div class="instruction">
+            秒针匀速转动，点击屏幕让它滑行停下，停在任意一个目标刻度上即可通关
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            angle: 0,
+            angularVelocity: 0,
+            isRotating: true,
+            isDecelerating: false,
+            level: 1,
+            targetAngle1: 0,
+            targetAngle2: 0,
+            tolerance: 5,
+            isStopped: false,
+            bestScore: 0
+        };
+
+        const secondHand = document.getElementById('second-hand');
+        const targetMark1 = document.getElementById('target-mark');
+        const targetMark2 = document.getElementById('target-mark-2');
+        const statusEl = document.getElementById('status');
+        const levelEl = document.getElementById('level');
+        const bestEl = document.getElementById('best');
+        const resetBtn = document.getElementById('reset-btn');
+        const clockContainer = document.getElementById('clock-container');
+        const clockMarks = document.getElementById('clock-marks');
+        const clockNumbers = document.getElementById('clock-numbers');
+        const clickHint = document.getElementById('click-hint');
+
+        function init() {
+            loadBestScore();
+            initClock();
+            generateTargets();
+            updateStats();
+            gameLoop();
+        }
+
+        function loadBestScore() {
+            const saved = localStorage.getItem('microControlBest');
+            if (saved) {
+                state.bestScore = parseInt(saved);
+            }
+        }
+
+        function saveBestScore() {
+            localStorage.setItem('microControlBest', state.bestScore.toString());
+        }
+
+        function initClock() {
+            for (let i = 0; i < 60; i++) {
+                const mark = document.createElement('div');
+                mark.className = `mark ${i % 5 === 0 ? 'major' : 'minor'}`;
+                const angle = i * 6;
+                mark.style.transform = `translateX(-50%) rotate(${angle}deg) translateY(-142px)`;
+                clockMarks.appendChild(mark);
+            }
+
+            const numbers = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+            numbers.forEach((num, index) => {
+                const number = document.createElement('div');
+                number.className = 'number';
+                const angle = (index * 30 - 90) * Math.PI / 180;
+                const radius = 105;
+                const x = 160 + radius * Math.cos(angle) - 12;
+                const y = 160 + radius * Math.sin(angle) - 12;
+                number.style.left = `${x}px`;
+                number.style.top = `${y}px`;
+                number.textContent = num;
+                clockNumbers.appendChild(number);
+            });
+        }
+
+        function generateTargets() {
+            state.targetAngle1 = Math.random() * 360;
+            
+            // 根据关卡动态调整目标间距
+            let targetGap;
+            if (state.level <= 3) {
+                targetGap = 6;
+            } else if (state.level <= 8) {
+                targetGap = 3;
+            } else {
+                targetGap = 1 + Math.random(); // 1-2°随机
+            }
+            
+            state.targetAngle2 = (state.targetAngle1 + targetGap) % 360;
+            
+            targetMark1.style.transform = `translateX(-50%) rotate(${state.targetAngle1}deg)`;
+            targetMark2.style.transform = `translateX(-50%) rotate(${state.targetAngle2}deg)`;
+            
+            state.tolerance = Math.max(1.5, 8 - Math.floor(state.level / 2));
+        }
+
+        function isPerfectMatch() {
+            let normAngle = state.angle % 360;
+            if (normAngle < 0) normAngle += 360;
+            
+            let diff1 = Math.abs(normAngle - state.targetAngle1);
+            if (diff1 > 180) diff1 = 360 - diff1;
+            
+            let diff2 = Math.abs(normAngle - state.targetAngle2);
+            if (diff2 > 180) diff2 = 360 - diff2;
+            
+            return diff1 <= state.tolerance || diff2 <= state.tolerance;
+        }
+
+        function updateSecondHand() {
+            secondHand.style.transform = `translateX(-50%) rotate(${state.angle}deg)`;
+        }
+
+        function gameLoop() {
+            if (state.isRotating) {
+                // 随关卡提升逐渐加快转速
+                state.angularVelocity = 1.2 + (state.level - 1) * 0.15;
+            }
+
+            if (state.isDecelerating) {
+                state.angularVelocity *= 0.985;
+                if (state.angularVelocity < 0.005) {
+                    state.angularVelocity = 0;
+                    state.isDecelerating = false;
+                    state.isStopped = true;
+                    checkWin();
+                }
+            }
+
+            state.angle += state.angularVelocity;
+            updateSecondHand();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startDecelerating() {
+            if (!state.isRotating || state.isDecelerating || state.isStopped) return;
+            
+            state.isRotating = false;
+            state.isDecelerating = true;
+            clickHint.style.display = 'none';
+            statusEl.textContent = '秒针滑行中...';
+            statusEl.classList.add('show');
+        }
+
+        function checkWin() {
+            if (isPerfectMatch()) {
+                statusEl.innerHTML = '<span class="success">完美，精准命中！</span>';
+                statusEl.classList.add('show');
+                
+                state.level++;
+                if (state.level > state.bestScore) {
+                    state.bestScore = state.level;
+                    saveBestScore();
+                }
+                updateStats();
+                
+                setTimeout(() => {
+                    resetGame(false);
+                    generateTargets();
+                }, 1400);
+            } else {
+                statusEl.textContent = '差一点点，再试一次';
+                statusEl.classList.add('show');
+            }
+        }
+
+        function resetGame(backToLevel1 = true) {
+            state.angle = 0;
+            state.angularVelocity = 0;
+            state.isRotating = true;
+            state.isDecelerating = false;
+            state.isStopped = false;
+            
+            statusEl.textContent = '';
+            statusEl.classList.remove('show');
+            clickHint.style.display = 'block';
+            
+            if (backToLevel1) {
+                state.level = 1;
+                updateStats();
+                generateTargets();
+            }
+            
+            updateSecondHand();
+        }
+
+        function updateStats() {
+            levelEl.textContent = state.level;
+            bestEl.textContent = state.bestScore;
+        }
+
+        clockContainer.addEventListener('click', startDecelerating);
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.btn')) {
+                startDecelerating();
+            }
+        });
+        clockContainer.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startDecelerating();
+        });
+        
+        resetBtn.addEventListener('click', () => resetGame(true));
+
+        init();
+    </script>
+</body>
+</html>
