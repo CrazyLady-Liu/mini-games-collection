@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>闲趣分色</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>闲趣分色</h1>
+            <div class="difficulty-selector">
+                <button class="difficulty-btn active" data-difficulty="easy">简单</button>
+                <button class="difficulty-btn" data-difficulty="normal">普通</button>
+                <button class="difficulty-btn" data-difficulty="hard">困难</button>
+            </div>
+            <button class="restart-btn" id="restartBtn">重新开始</button>
+        </header>
+
+        <main class="game-area">
+            <div class="containers-area" id="containersArea"></div>
+            <div class="dots-area" id="dotsArea"></div>
+        </main>
+
+        <div class="game-overlay" id="gameOverlay">
+            <div class="overlay-content">
+                <h2>🎉 恭喜通关！</h2>
+                <button class="overlay-btn" id="continueBtn">继续挑战</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

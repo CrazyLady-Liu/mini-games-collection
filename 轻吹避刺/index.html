@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>轻吹避刺</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            padding: 15px 20px 10px 20px;
+        }
+        .game-container {
+            position: relative;
+            margin-bottom: 10px;
+        }
+        canvas {
+            display: block;
+            background: linear-gradient(180deg, #2d3561 0%, #1a1a2e 100%);
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .controls-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            max-width: 420px;
+        }
+        .controls-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: nowrap;
+        }
+        .btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.25s;
+            opacity: 0.85;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            opacity: 1;
+        }
+        .btn.active {
+            box-shadow: 0 0 10px rgba(255,255,255,0.3);
+            opacity: 1;
+        }
+        .difficulty-btn.easy {
+            background: rgba(74, 222, 128);
+            color: #1a1a2e;
+        }
+        .difficulty-btn.normal {
+            background: rgba(251, 191, 36);
+            color: #1a1a2e;
+        }
+        .difficulty-btn.hard {
+            background: rgba(248, 113, 113);
+            color: #1a1a2e;
+        }
+        .speed-btn {
+            background: rgba(129, 140, 248);
+            color: #1a1a2e;
+        }
+        .pause-btn {
+            background: rgba(167, 139, 250);
+            color: #1a1a2e;
+        }
+        .pause-btn.paused {
+            background: rgba(245, 158, 11);
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.08);
+            padding: 4px 10px;
+            border-radius: 12px;
+            opacity: 0.9;
+        }
+        .slider-label {
+            color: #cbd5e1;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .slider {
+            width: 80px;
+            height: 5px;
+            -webkit-appearance: none;
+            background: rgba(255,255,255,0.25);
+            border-radius: 3px;
+            outline: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: rgba(129, 140, 248);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: rgba(165, 180, 252);
+        }
+        .slider-value {
+            color: #cbd5e1;
+            font-size: 11px;
+            font-weight: 600;
+            min-width: 32px;
+            text-align: center;
+        }
+        .hint {
+            margin-top: 6px;
+            color: rgba(148, 163, 184);
+            font-size: 11px;
+            text-align: center;
+            opacity: 0.8;
+        }
+        .power-bar {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 8px;
+            background: rgba(255,255,255,0.18);
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+        }
+        .power-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80, #fbbf24, #f87171);
+            width: 0%;
+            transition: width 0.05s;
+        }
+        .status-text {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            color: #f59e0b;
+            font-size: 12px;
+            font-weight: bold;
+            display: none;
+            background: rgba(0,0,0,0.45);
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div class="power-bar" id="powerBar">
+            <div class="power-fill" id="powerFill"></div>
+        </div>
+        <div class="status-text" id="statusText">已暂停</div>
+    </div>
+    
+    <div class="controls-wrapper">
+        <div class="controls-row">
+            <button class="btn difficulty-btn easy active" data-difficulty="easy">简单</button>
+            <button class="btn difficulty-btn normal" data-difficulty="normal">普通</button>
+            <button class="btn difficulty-btn hard" data-difficulty="hard">困难</button>
+        </div>
+        
+        <div class="controls-row">
+            <button class="btn speed-btn" data-speed="1">1x</button>
+            <button class="btn speed-btn active" data-speed="2">2x</button>
+            <button class="btn speed-btn" data-speed="3">3x</button>
+            <button class="btn speed-btn" data-speed="4">4x</button>
+            <div class="slider-container">
+                <span class="slider-label">自定义</span>
+                <input type="range" class="slider" id="speedSlider" min="5" max="40" value="20">
+                <span class="slider-value" id="speedValue">2.0x</span>
+            </div>
+            <button class="btn pause-btn" id="pauseBtn">暂停</button>
+        </div>
+    </div>
+    
+    <p class="hint">长按蓄力 | 松开吹出 | 速度与难度独立调节 | 暂停适配摸鱼</p>
+
+    <script>
+        const DifficultyConfig = {
+            easy: {
+                powerSensitivity: 1.2,
+                spikeCount: 8,
+                layoutType: 'sparse',
+                colorScheme: 'highContrast',
+                bubbleColors: [
+                    ['rgba(147, 197, 253, 0.9)', 'rgba(96, 165, 250, 0.7)', 'rgba(59, 130, 246, 0.3)'],
+                    ['rgba(191, 219, 254, 0.9)', 'rgba(147, 197, 253, 0.7)', 'rgba(96, 165, 250, 0.3)']
+                ],
+                spikeColors: ['#ef4444', '#f87171']
+            },
+            normal: {
+                powerSensitivity: 1.0,
+                spikeCount: 15,
+                layoutType: 'medium',
+                colorScheme: 'distinct',
+                bubbleColors: [
+                    ['rgba(147, 197, 253, 0.9)', 'rgba(96, 165, 250, 0.7)', 'rgba(59, 130, 246, 0.3)'],
+                    ['rgba(167, 139, 250, 0.9)', 'rgba(139, 92, 246, 0.7)', 'rgba(124, 58, 237, 0.3)'],
+                    ['rgba(251, 191, 36, 0.9)', 'rgba(245, 158, 11, 0.7)', 'rgba(217, 119, 6, 0.3)'],
+                    ['rgba(52, 211, 153, 0.9)', 'rgba(16, 185, 129, 0.7)', 'rgba(5, 150, 105, 0.3)']
+                ],
+                spikeColors: ['#ef4444', '#f87171', '#f97316', '#fb923c']
+            },
+            hard: {
+                powerSensitivity: 0.8,
+                spikeCount: 25,
+                layoutType: 'dense',
+                colorScheme: 'subtle',
+                bubbleColors: [
+                    ['rgba(148, 163, 184, 0.9)', 'rgba(100, 116, 139, 0.7)', 'rgba(71, 85, 105, 0.3)'],
+                    ['rgba(156, 163, 175, 0.9)', 'rgba(107, 114, 128, 0.7)', 'rgba(75, 85, 99, 0.3)'],
+                    ['rgba(148, 163, 184, 0.9)', 'rgba(100, 116, 139, 0.7)', 'rgba(71, 85, 105, 0.3)'],
+                    ['rgba(125, 211, 252, 0.9)', 'rgba(56, 189, 248, 0.7)', 'rgba(14, 165, 233, 0.3)'],
+                    ['rgba(196, 181, 253, 0.9)', 'rgba(167, 139, 250, 0.7)', 'rgba(139, 92, 246, 0.3)']
+                ],
+                spikeColors: ['#991b1b', '#7f1d1d', '#b91c1c', '#dc2626', '#ef4444']
+            }
+        };
+
+        const SpeedConfig = {
+            1: 10,
+            2: 20,
+            3: 30,
+            4: 40
+        };
+
+        class Game {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.powerBar = document.getElementById('powerBar');
+                this.powerFill = document.getElementById('powerFill');
+                this.statusText = document.getElementById('statusText');
+                this.speedSlider = document.getElementById('speedSlider');
+                this.speedValue = document.getElementById('speedValue');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                
+                this.initCanvas();
+                this.initParameters();
+                this.initDifficulty('easy');
+                this.initSpeed(20);
+                this.initEventListeners();
+                this.generateSpikes();
+                this.gameLoop();
+            }
+
+            initCanvas() {
+                this.canvas.width = 400;
+                this.canvas.height = 600;
+            }
+
+            initParameters() {
+                this.bubbleBaseSize = 15;
+                this.bubbleMinSize = 10;
+                this.bubbleMaxSize = 40;
+                this.powerMin = 0;
+                this.powerMax = 100;
+                this.power = 0;
+                this.isCharging = false;
+                this.bubbles = [];
+                this.spikes = [];
+                this.particles = [];
+                this.isPaused = false;
+                this.floatSpeedMultiplier = 20;
+            }
+
+            initDifficulty(level) {
+                this.difficulty = level;
+                this.config = DifficultyConfig[level];
+                
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.difficulty === level) {
+                        btn.classList.add('active');
+                    }
+                });
+                
+                this.generateSpikes();
+            }
+
+            initSpeed(value) {
+                this.floatSpeedMultiplier = value;
+                this.speedSlider.value = value;
+                this.speedValue.textContent = (value / 10).toFixed(1) + 'x';
+                
+                document.querySelectorAll('.speed-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (parseInt(SpeedConfig[btn.dataset.speed]) === value) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+
+            togglePause() {
+                this.isPaused = !this.isPaused;
+                this.pauseBtn.classList.toggle('paused', this.isPaused);
+                this.pauseBtn.textContent = this.isPaused ? '继续' : '暂停';
+                this.statusText.style.display = this.isPaused ? 'block' : 'none';
+            }
+
+            initEventListeners() {
+                this.canvas.addEventListener('mousedown', (e) => this.startCharge(e));
+                this.canvas.addEventListener('mouseup', (e) => this.releaseBubble(e));
+                this.canvas.addEventListener('mouseleave', (e) => this.releaseBubble(e));
+                
+                this.canvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.startCharge(e.touches[0]);
+                });
+                this.canvas.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.releaseBubble(e.changedTouches[0]);
+                });
+
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.initDifficulty(btn.dataset.difficulty));
+                });
+
+                document.querySelectorAll('.speed-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.initSpeed(SpeedConfig[btn.dataset.speed]));
+                });
+
+                this.speedSlider.addEventListener('input', (e) => {
+                    this.initSpeed(parseInt(e.target.value));
+                });
+
+                this.pauseBtn.addEventListener('click', () => this.togglePause());
+            }
+
+            startCharge(e) {
+                this.isCharging = true;
+                this.power = 0;
+                this.powerBar.style.display = 'block';
+            }
+
+            releaseBubble(e) {
+                if (!this.isCharging) return;
+                
+                this.isCharging = false;
+                this.powerBar.style.display = 'none';
+                
+                const rect = this.canvas.getBoundingClientRect();
+                const x = (e.clientX || e.pageX) - rect.left;
+                const y = (e.clientY || e.pageY) - rect.top;
+                
+                const size = this.bubbleMinSize + (this.bubbleMaxSize - this.bubbleMinSize) * (this.power / this.powerMax);
+                const velocity = 2 + 6 * (this.power / this.powerMax);
+                const colorSet = this.config.bubbleColors[Math.floor(Math.random() * this.config.bubbleColors.length)];
+                
+                this.bubbles.push(new Bubble(x, Math.min(y, this.canvas.height - 50), size, velocity, colorSet));
+                
+                this.power = 0;
+                this.powerFill.style.width = '0%';
+            }
+
+            generateSpikes() {
+                this.spikes = [];
+                const layoutType = this.config.layoutType;
+                
+                if (layoutType === 'sparse') {
+                    this.generateSparseLayout();
+                } else if (layoutType === 'medium') {
+                    this.generateMediumLayout();
+                } else {
+                    this.generateDenseLayout();
+                }
+            }
+
+            generateSparseLayout() {
+                const count = this.config.spikeCount;
+                const rows = 4;
+                const cols = Math.ceil(count / rows);
+                
+                for (let i = 0; i < count; i++) {
+                    const row = Math.floor(i / cols);
+                    const col = i % cols;
+                    const x = 40 + (this.canvas.width - 80) * (col / (cols - 1 || 1));
+                    const y = 100 + (this.canvas.height - 250) * (row / (rows - 1 || 1));
+                    const color = this.config.spikeColors[i % this.config.spikeColors.length];
+                    this.spikes.push(new Spike(x + (Math.random() - 0.5) * 30, y, color));
+                }
+            }
+
+            generateMediumLayout() {
+                const count = this.config.spikeCount;
+                for (let i = 0; i < count; i++) {
+                    const baseX = (this.canvas.width / (count + 1)) * (i + 1);
+                    const randomOffset = (Math.random() - 0.5) * 100;
+                    const x = Math.max(25, Math.min(this.canvas.width - 25, baseX + randomOffset));
+                    const y = 80 + Math.random() * (this.canvas.height - 200);
+                    const color = this.config.spikeColors[i % this.config.spikeColors.length];
+                    this.spikes.push(new Spike(x, y, color));
+                }
+            }
+
+            generateDenseLayout() {
+                const count = this.config.spikeCount;
+                const layoutMode = Math.floor(Math.random() * 3);
+                
+                if (layoutMode === 0) {
+                    const rows = 6;
+                    const cols = 5;
+                    for (let row = 0; row < rows; row++) {
+                        for (let col = 0; col < cols; col++) {
+                            if (this.spikes.length >= count) break;
+                            const x = 35 + (this.canvas.width - 70) * (col / (cols - 1));
+                            const y = 90 + (this.canvas.height - 230) * (row / (rows - 1));
+                            const color = this.config.spikeColors[Math.floor(Math.random() * this.config.spikeColors.length)];
+                            this.spikes.push(new Spike(x + (Math.random() - 0.5) * 40, y + (Math.random() - 0.5) * 30, color));
+                        }
+                    }
+                } else if (layoutMode === 1) {
+                    for (let i = 0; i < count; i++) {
+                        const x = 25 + Math.random() * (this.canvas.width - 50);
+                        const y = 80 + Math.random() * (this.canvas.height - 200);
+                        const color = this.config.spikeColors[Math.floor(Math.random() * this.config.spikeColors.length)];
+                        this.spikes.push(new Spike(x, y, color));
+                    }
+                } else {
+                    for (let i = 0; i < count; i++) {
+                        const angle = (i / count) * Math.PI * 2;
+                        const radius = 120 + Math.random() * 60;
+                        const centerX = this.canvas.width / 2;
+                        const centerY = this.canvas.height / 2;
+                        const x = centerX + Math.cos(angle) * radius;
+                        const y = centerY + Math.sin(angle) * radius * 0.7;
+                        const clampedX = Math.max(25, Math.min(this.canvas.width - 25, x));
+                        const clampedY = Math.max(80, Math.min(this.canvas.height - 120, y));
+                        const color = this.config.spikeColors[Math.floor(Math.random() * this.config.spikeColors.length)];
+                        this.spikes.push(new Spike(clampedX, clampedY, color));
+                    }
+                }
+            }
+
+            update() {
+                if (this.isCharging) {
+                    this.power += 2 * this.config.powerSensitivity;
+                    if (this.power > this.powerMax) this.power = this.powerMax;
+                    this.powerFill.style.width = this.power + '%';
+                }
+
+                if (!this.isPaused) {
+                    const floatSpeed = this.floatSpeedMultiplier / 20;
+                    
+                    this.bubbles.forEach((bubble, index) => {
+                        bubble.update(floatSpeed);
+                        
+                        this.spikes.forEach(spike => {
+                            if (this.checkCollision(bubble, spike)) {
+                                this.createParticles(bubble.x, bubble.y, bubble.size, bubble.colorSet);
+                                this.bubbles.splice(index, 1);
+                            }
+                        });
+                        
+                        if (bubble.y < -bubble.size || bubble.x < -bubble.size || bubble.x > this.canvas.width + bubble.size) {
+                            this.bubbles.splice(index, 1);
+                        }
+                    });
+
+                    this.particles.forEach((particle, index) => {
+                        particle.update();
+                        if (particle.life <= 0) {
+                            this.particles.splice(index, 1);
+                        }
+                    });
+                }
+            }
+
+            checkCollision(bubble, spike) {
+                const dx = bubble.x - spike.x;
+                const dy = bubble.y - spike.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance < bubble.size + spike.size;
+            }
+
+            createParticles(x, y, size, colorSet) {
+                const count = 12;
+                for (let i = 0; i < count; i++) {
+                    this.particles.push(new Particle(x, y, size, colorSet));
+                }
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.drawBackground();
+                this.spikes.forEach(spike => spike.draw(this.ctx));
+                this.bubbles.forEach(bubble => bubble.draw(this.ctx));
+                this.particles.forEach(particle => particle.draw(this.ctx));
+            }
+
+            drawBackground() {
+                const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+                gradient.addColorStop(0, '#2d3561');
+                gradient.addColorStop(1, '#1a1a2e');
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+
+            gameLoop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        }
+
+        class Bubble {
+            constructor(x, y, size, velocity, colorSet) {
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                this.velocity = velocity;
+                this.colorSet = colorSet;
+                this.wobble = Math.random() * Math.PI * 2;
+                this.wobbleSpeed = 0.05 + Math.random() * 0.03;
+                this.wobbleAmount = 2 + Math.random() * 2;
+                this.opacity = 1;
+            }
+
+            update(floatSpeed) {
+                this.y -= this.velocity * floatSpeed;
+                this.wobble += this.wobbleSpeed;
+                this.x += Math.sin(this.wobble) * this.wobbleAmount;
+                this.velocity *= 0.995;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                
+                const gradient = ctx.createRadialGradient(
+                    this.x - this.size * 0.3,
+                    this.y - this.size * 0.3,
+                    0,
+                    this.x,
+                    this.y,
+                    this.size
+                );
+                gradient.addColorStop(0, this.colorSet[0]);
+                gradient.addColorStop(0.5, this.colorSet[1]);
+                gradient.addColorStop(1, this.colorSet[2]);
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.arc(this.x - this.size * 0.3, this.y - this.size * 0.3, this.size * 0.2, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        class Spike {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.size = 14 + Math.random() * 8;
+                this.rotation = (Math.random() - 0.5) * 0.5;
+                this.color = color;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                
+                ctx.beginPath();
+                ctx.moveTo(0, -this.size);
+                ctx.lineTo(-this.size * 0.6, this.size * 0.6);
+                ctx.lineTo(this.size * 0.6, this.size * 0.6);
+                ctx.closePath();
+                
+                const gradient = ctx.createLinearGradient(0, -this.size, 0, this.size);
+                gradient.addColorStop(0, this.color);
+                gradient.addColorStop(1, this.darkenColor(this.color, 30));
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(0, -this.size);
+                ctx.lineTo(-this.size * 0.3, this.size * 0.2);
+                ctx.lineTo(0, this.size * 0.1);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.fill();
+                
+                ctx.restore();
+            }
+
+            darkenColor(color, amount) {
+                const hex = color.replace('#', '');
+                const r = Math.max(0, parseInt(hex.substr(0, 2), 16) - amount);
+                const g = Math.max(0, parseInt(hex.substr(2, 2), 16) - amount);
+                const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - amount);
+                return `rgb(${r},${g},${b})`;
+            }
+        }
+
+        class Particle {
+            constructor(x, y, bubbleSize, colorSet) {
+                this.x = x;
+                this.y = y;
+                this.size = bubbleSize * (0.1 + Math.random() * 0.3);
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1 + Math.random() * 3;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.life = 1;
+                this.decay = 0.02 + Math.random() * 0.02;
+                this.color = this.getColorFromSet(colorSet);
+            }
+
+            getColorFromSet(colorSet) {
+                const colors = colorSet.map(c => {
+                    const match = c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+                    if (match) {
+                        return `hsl(${Math.random() * 60 + 200}, 80%, 70%)`;
+                    }
+                    return `hsl(${200 + Math.random() * 40}, 80%, 70%)`;
+                });
+                return colors[Math.floor(Math.random() * colors.length)] || `hsl(${200 + Math.random() * 40}, 80%, 70%)`;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy -= 0.05;
+                this.life -= this.decay;
+                this.size *= 0.98;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        window.onload = () => {
+            new Game();
+        };
+    </script>
+</body>
+</html>

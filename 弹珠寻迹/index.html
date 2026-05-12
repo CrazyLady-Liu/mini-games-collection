@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弹珠寻迹</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Microsoft YaHei', sans-serif;
+            overflow: hidden;
+        }
+        #gameContainer {
+            position: relative;
+        }
+        canvas {
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.3);
+        }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            font-size: 16px;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        #ui div {
+            margin: 8px 0;
+        }
+        #level {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        #winMessage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: #00ff88;
+            text-shadow: 0 0 30px #00ff88;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+        #controls {
+            margin-top: 20px;
+            color: #aaa;
+            font-size: 14px;
+            text-align: center;
+        }
+        #controls span {
+            color: #00d4ff;
+        }
+        #speedControls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            color: #fff;
+        }
+        #speedControls h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #00d4ff;
+        }
+        .speed-btns {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .speed-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            background: #2a3f5f;
+            color: #fff;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .speed-btn:hover {
+            background: #3a5070;
+        }
+        .speed-btn.active {
+            background: #00d4ff;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #speedSlider {
+            width: 120px;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #2a3f5f;
+            border-radius: 3px;
+            outline: none;
+        }
+        #speedSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #00d4ff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        #speedValue {
+            font-size: 12px;
+            min-width: 40px;
+        }
+        #pauseBtn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #pauseBtn:hover {
+            transform: scale(1.05);
+        }
+        #pauseBtn.paused {
+            background: linear-gradient(135deg, #00d4ff, #0088cc);
+        }
+        #pauseOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+        }
+        #pauseOverlay.show {
+            display: flex;
+        }
+        #pauseText {
+            font-size: 48px;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+        #paddleLegend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 12px;
+        }
+        #paddleLegend h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #00d4ff;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px 0;
+        }
+        .legend-color {
+            width: 24px;
+            height: 12px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui">
+            <div id="level">关卡 1</div>
+            <div>力度: <span id="powerDisplay">0</span>%</div>
+            <div>角度: <span id="angleDisplay">0</span>°</div>
+        </div>
+        <div id="winMessage">🎉 过关！</div>
+        <div id="speedControls">
+            <h3>⚡ 速度控制</h3>
+            <div class="speed-btns">
+                <button class="speed-btn" data-speed="0.5">0.5x</button>
+                <button class="speed-btn" data-speed="1">1x</button>
+                <button class="speed-btn active" data-speed="1.5">1.5x</button>
+                <button class="speed-btn" data-speed="2">2x</button>
+            </div>
+            <div class="slider-container">
+                <span>自定义:</span>
+                <input type="range" id="speedSlider" min="0.2" max="3" step="0.1" value="1.5">
+                <span id="speedValue">1.5x</span>
+            </div>
+        </div>
+        <button id="pauseBtn">⏸ 暂停</button>
+        <div id="pauseOverlay">
+            <div id="pauseText">⏸ 游戏暂停</div>
+        </div>
+        <div id="paddleLegend">
+            <h3>🎮 挡板说明</h3>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(to right, #ff6b6b, #ff8e53, #ff6b6b);"></div>
+                <span>普通 - 标准反弹</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(to right, #9b59b6, #8e44ad, #9b59b6);"></div>
+                <span>移动 - 来回移动</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(to right, #3498db, #2980b9, #3498db);"></div>
+                <span>弹性 - 弹力更大</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(to right, #2ecc71, #27ae60, #2ecc71);"></div>
+                <span>单向 - 单向穿透</span>
+            </div>
+        </div>
+    </div>
+    <div id="controls">
+        鼠标拖动调整角度和力度 | 方向键 <span>←→</span> 微调角度 | 方向键 <span>↑↓</span> 微调力度 | <span>P</span> 键暂停
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
