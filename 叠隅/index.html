@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>叠隅 - 堆叠方块游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+        .game-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #gameCanvas {
+            background: linear-gradient(180deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .ui-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        .level-display, .timer-display {
+            background: rgba(255,255,255,0.95);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .timer-display.warning {
+            color: #ff6b6b;
+            animation: pulse 0.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .hint-text {
+            background: rgba(255,255,255,0.95);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #666;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.98);
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            display: none;
+        }
+        .game-message h2 {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        .game-message p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        .game-message button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            pointer-events: auto;
+            margin: 5px;
+        }
+        .game-message button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .game-message button.secondary {
+            background: linear-gradient(135deg, #a8dadc 0%, #457b9d 100%);
+        }
+        .mode-select {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .mode-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 18px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-align: left;
+        }
+        .mode-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .mode-btn small {
+            display: block;
+            font-size: 13px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        .mode-btn.precision {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+        }
+        .reset-btn, .menu-btn {
+            position: absolute;
+            background: rgba(255,255,255,0.95);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #667eea;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .reset-btn:hover, .menu-btn:hover {
+            transform: scale(1.05);
+        }
+        .reset-btn {
+            bottom: 20px;
+            right: 20px;
+        }
+        .menu-btn {
+            bottom: 20px;
+            left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="600" height="800"></canvas>
+        <div class="ui-overlay" id="gameUI" style="display: none;">
+            <div class="level-display" id="levelDisplay">关卡 <span id="levelNum">1</span></div>
+            <div class="timer-display" id="timerDisplay" style="display: none;">时间: <span id="timerNum">60</span>s</div>
+            <div class="hint-text">← → 或 鼠标移动控制</div>
+        </div>
+        <div class="game-message" id="modeSelect">
+            <h2>🎮 选择模式</h2>
+            <div class="mode-select">
+                <button class="mode-btn" onclick="startGame('basic')">
+                    📦 基础模式
+                    <small>普通堆叠，无限关卡</small>
+                </button>
+                <button class="mode-btn" onclick="startGame('timed')">
+                    ⏱️ 限时休闲模式
+                    <small>60秒倒计时，超时可重开</small>
+                </button>
+                <button class="mode-btn precision" onclick="startGame('precision')">
+                    🎯 精准模式
+                    <small>方块变小，考验对齐</small>
+                </button>
+            </div>
+        </div>
+        <div class="game-message" id="gameMessage">
+            <h2 id="messageTitle">通关!</h2>
+            <p id="messageText">准备进入下一关</p>
+            <div id="messageButtons"></div>
+        </div>
+        <button class="reset-btn" id="resetBtn" style="display: none;">重置</button>
+        <button class="menu-btn" id="menuBtn" style="display: none;">返回菜单</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const levelNumEl = document.getElementById('levelNum');
+        const timerNumEl = document.getElementById('timerNum');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const gameUI = document.getElementById('gameUI');
+        const gameMessage = document.getElementById('gameMessage');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageText = document.getElementById('messageText');
+        const messageButtons = document.getElementById('messageButtons');
+        const modeSelect = document.getElementById('modeSelect');
+        const resetBtn = document.getElementById('resetBtn');
+        const menuBtn = document.getElementById('menuBtn');
+
+        const macaronColors = [
+            '#FFB6C1', '#FFC0CB', '#FF69B4', '#FF1493',
+            '#E6E6FA', '#DDA0DD', '#DA70D6', '#BA55D3',
+            '#87CEEB', '#87CEFA', '#00BFFF', '#1E90FF',
+            '#98FB98', '#90EE90', '#00FA9A', '#7CFC00',
+            '#FFFACD', '#FFE4B5', '#FFDAB9', '#FFE4E1'
+        ];
+
+        const baseBlockSize = { width: 80, height: 40 };
+
+        let level = 1;
+        let blocks = [];
+        let currentBlock = null;
+        let gameState = 'menu';
+        let gameMode = 'basic';
+        let mouseX = canvas.width / 2;
+        let keys = {};
+        let stabilityTimer = 0;
+        let stabilityCheckTime = 120;
+        let timeRemaining = 60;
+        let lastTime = 0;
+        let isPrecisionMode = false;
+        let spawnTimer = 0;
+
+        // ===== 核心物理引擎 - 保持不变 =====
+        class Block {
+            constructor(x, y, width, height, color, isStatic = false) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.color = color;
+                this.vx = 0;
+                this.vy = 0;
+                this.angle = 0;
+                this.angularVelocity = 0;
+                this.isStatic = isStatic;
+                this.isControlled = false;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                ctx.rotate(this.angle);
+                
+                const radius = 12;
+                ctx.beginPath();
+                ctx.moveTo(-this.width / 2 + radius, -this.height / 2);
+                ctx.lineTo(this.width / 2 - radius, -this.height / 2);
+                ctx.quadraticCurveTo(this.width / 2, -this.height / 2, this.width / 2, -this.height / 2 + radius);
+                ctx.lineTo(this.width / 2, this.height / 2 - radius);
+                ctx.quadraticCurveTo(this.width / 2, this.height / 2, this.width / 2 - radius, this.height / 2);
+                ctx.lineTo(-this.width / 2 + radius, this.height / 2);
+                ctx.quadraticCurveTo(-this.width / 2, this.height / 2, -this.width / 2, this.height / 2 - radius);
+                ctx.lineTo(-this.width / 2, -this.height / 2 + radius);
+                ctx.quadraticCurveTo(-this.width / 2, -this.height / 2, -this.width / 2 + radius, -this.height / 2);
+                ctx.closePath();
+                
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.beginPath();
+                ctx.ellipse(0, -this.height / 4, this.width / 3, this.height / 6, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+
+            update() {
+                if (this.isStatic || this.isControlled) return;
+
+                this.vy += 0.3;
+                this.vx *= 0.98;
+                this.angularVelocity *= 0.98;
+
+                this.x += this.vx;
+                this.y += this.vy;
+                this.angle += this.angularVelocity;
+
+                if (this.y + this.height > canvas.height - 50) {
+                    this.y = canvas.height - 50 - this.height;
+                    this.vy *= -0.2;
+                    this.vx *= 0.8;
+                    this.angularVelocity *= 0.5;
+                }
+
+                if (this.x < 0) {
+                    this.x = 0;
+                    this.vx *= -0.5;
+                }
+                if (this.x + this.width > canvas.width) {
+                    this.x = canvas.width - this.width;
+                    this.vx *= -0.5;
+                }
+            }
+
+            getCorners() {
+                const cx = this.x + this.width / 2;
+                const cy = this.y + this.height / 2;
+                const hw = this.width / 2;
+                const hh = this.height / 2;
+                const cos = Math.cos(this.angle);
+                const sin = Math.sin(this.angle);
+                return [
+                    { x: cx - hw * cos + hh * sin, y: cy - hw * sin - hh * cos },
+                    { x: cx + hw * cos + hh * sin, y: cy + hw * sin - hh * cos },
+                    { x: cx + hw * cos - hh * sin, y: cy + hw * sin + hh * cos },
+                    { x: cx - hw * cos - hh * sin, y: cy - hw * sin + hh * cos }
+                ];
+            }
+        }
+
+        function checkCollision(a, b) {
+            if (!a || !b || a === b) return false;
+            const aCorners = a.getCorners();
+            const bCorners = b.getCorners();
+            const axes = [];
+            
+            axes.push(getAxis(aCorners[0], aCorners[1]));
+            axes.push(getAxis(aCorners[1], aCorners[2]));
+            axes.push(getAxis(bCorners[0], bCorners[1]));
+            axes.push(getAxis(bCorners[1], bCorners[2]));
+            
+            for (let axis of axes) {
+                const aProj = project(aCorners, axis);
+                const bProj = project(bCorners, axis);
+                if (aProj.max < bProj.min || bProj.max < aProj.min) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function getAxis(p1, p2) {
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const len = Math.sqrt(dx * dx + dy * dy) || 1;
+            return { x: -dy / len, y: dx / len };
+        }
+
+        function project(corners, axis) {
+            let min = Infinity, max = -Infinity;
+            for (let corner of corners) {
+                const proj = corner.x * axis.x + corner.y * axis.y;
+                min = Math.min(min, proj);
+                max = Math.max(max, proj);
+            }
+            return { min, max };
+        }
+
+        function resolveCollision(a, b) {
+            if (!a || !b) return;
+            if (a.isStatic) {
+                resolveCollision(b, a);
+                return;
+            }
+            if (!checkCollision(a, b)) return;
+
+            const cx = (a.x + a.width / 2) - (b.x + b.width / 2);
+            const cy = (a.y + a.height / 2) - (b.y + b.height / 2);
+            const overlapX = (a.width + b.width) / 2 - Math.abs(cx);
+            const overlapY = (a.height + b.height) / 2 - Math.abs(cy);
+
+            if (overlapX < overlapY) {
+                if (cx > 0) a.x += overlapX;
+                else a.x -= overlapX;
+                a.vx *= -0.3;
+            } else {
+                if (cy > 0) a.y += overlapY;
+                else a.y -= overlapY;
+                a.vy *= -0.3;
+                a.vx *= 0.8;
+            }
+            a.angularVelocity += (Math.random() - 0.5) * 0.02;
+        }
+
+        function isStable() {
+            for (let block of blocks) {
+                if (!block || block.isStatic || block.isControlled) continue;
+                if (Math.abs(block.vx) > 0.5 || Math.abs(block.vy) > 0.5 || Math.abs(block.angularVelocity) > 0.02) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        // ===== 核心物理引擎结束 =====
+
+        function getBlockSize() {
+            let width = baseBlockSize.width + Math.random() * 30 - 15;
+            let height = baseBlockSize.height;
+            
+            if (level > 3) {
+                const variation = Math.random();
+                if (variation > 0.7 && level > 6) {
+                    width = 120;
+                    height = 35;
+                } else if (variation > 0.4) {
+                    width = 60;
+                    height = 60;
+                }
+            }
+            
+            if (isPrecisionMode) {
+                width *= 0.6;
+                height *= 0.6;
+            }
+            
+            return { width, height };
+        }
+
+        function startGame(mode) {
+            gameMode = mode;
+            isPrecisionMode = (mode === 'precision');
+            level = 1;
+            timeRemaining = 60;
+            modeSelect.style.display = 'none';
+            gameUI.style.display = 'flex';
+            resetBtn.style.display = 'block';
+            menuBtn.style.display = 'block';
+            
+            if (mode === 'timed') {
+                timerDisplay.style.display = 'block';
+                levelDisplay.textContent = '关卡 1';
+            } else {
+                timerDisplay.style.display = 'none';
+            }
+            
+            initLevel();
+        }
+
+        function showMenu() {
+            gameState = 'menu';
+            modeSelect.style.display = 'block';
+            gameUI.style.display = 'none';
+            gameMessage.style.display = 'none';
+            resetBtn.style.display = 'none';
+            menuBtn.style.display = 'none';
+            blocks = [];
+            currentBlock = null;
+        }
+
+        function initLevel() {
+            blocks = [];
+            currentBlock = null;
+            gameState = 'playing';
+            stabilityTimer = 0;
+            spawnTimer = 0;
+            gameMessage.style.display = 'none';
+            levelNumEl.textContent = level;
+            
+            if (gameMode === 'timed') {
+                levelDisplay.textContent = `关卡 ${level}`;
+            }
+
+            const ground = new Block(0, canvas.height - 50, canvas.width, 50, '#a8dadc', true);
+            blocks.push(ground);
+
+            spawnBlock();
+        }
+
+        function spawnBlock() {
+            try {
+                const size = getBlockSize();
+                const color = macaronColors[Math.floor(Math.random() * macaronColors.length)];
+                currentBlock = new Block(canvas.width / 2 - size.width / 2, 50, size.width, size.height, color);
+                currentBlock.isControlled = true;
+                blocks.push(currentBlock);
+            } catch (e) {
+                console.error('Spawn block error:', e);
+            }
+        }
+
+        function dropBlock() {
+            if (!currentBlock) return;
+            currentBlock.isControlled = false;
+            currentBlock = null;
+        }
+
+        function update(deltaTime) {
+            if (gameState !== 'playing') return;
+
+            if (gameMode === 'timed') {
+                timeRemaining -= deltaTime / 1000;
+                timerNumEl.textContent = Math.ceil(timeRemaining);
+                
+                if (timeRemaining <= 10) {
+                    timerDisplay.classList.add('warning');
+                }
+                
+                if (timeRemaining <= 0) {
+                    timeUp();
+                    return;
+                }
+            }
+
+            if (currentBlock && currentBlock.isControlled) {
+                const targetX = mouseX - currentBlock.width / 2;
+                currentBlock.x += (targetX - currentBlock.x) * 0.15;
+                currentBlock.x = Math.max(0, Math.min(canvas.width - currentBlock.width, currentBlock.x));
+                
+                if (keys['ArrowLeft']) currentBlock.x -= 5;
+                if (keys['ArrowRight']) currentBlock.x += 5;
+            }
+
+            for (let block of blocks) {
+                if (block) block.update();
+            }
+
+            for (let i = 0; i < blocks.length; i++) {
+                for (let j = i + 1; j < blocks.length; j++) {
+                    resolveCollision(blocks[i], blocks[j]);
+                }
+            }
+
+            const requiredBlocks = Math.min(3 + Math.floor(level / 2), 10);
+            const placedBlocks = blocks.filter(b => b && !b.isStatic && !b.isControlled).length;
+
+            if (currentBlock && !currentBlock.isControlled) {
+            } else if (!currentBlock && placedBlocks < requiredBlocks) {
+                spawnTimer++;
+                if (spawnTimer > 30) {
+                    spawnBlock();
+                    spawnTimer = 0;
+                }
+            }
+
+            if (placedBlocks >= requiredBlocks && !currentBlock) {
+                if (isStable()) {
+                    stabilityTimer++;
+                    if (stabilityTimer > stabilityCheckTime) {
+                        levelComplete();
+                    }
+                } else {
+                    stabilityTimer = 0;
+                }
+            }
+        }
+
+        function draw() {
+            try {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let block of blocks) {
+                    if (block) block.draw();
+                }
+
+                if (gameState === 'playing') {
+                    const requiredBlocks = Math.min(3 + Math.floor(level / 2), 10);
+                    const placedBlocks = blocks.filter(b => b && !b.isStatic && !b.isControlled).length;
+                    
+                    ctx.fillStyle = 'rgba(102, 126, 234, 0.8)';
+                    ctx.fillRect(20, 20, 200, 10);
+                    ctx.fillStyle = '#764ba2';
+                    ctx.fillRect(20, 20, (placedBlocks / requiredBlocks) * 200, 10);
+                }
+            } catch (e) {
+                console.error('Draw error:', e);
+            }
+        }
+
+        function levelComplete() {
+            gameState = 'levelComplete';
+            messageTitle.textContent = '🎉 通关!';
+            messageText.textContent = `关卡 ${level} 完成!`;
+            messageButtons.innerHTML = '<button onclick="nextLevel()">下一关</button>';
+            gameMessage.style.display = 'block';
+        }
+
+        function timeUp() {
+            gameState = 'timeUp';
+            messageTitle.textContent = '⏰ 时间到!';
+            messageText.textContent = `你完成了 ${level} 关`;
+            messageButtons.innerHTML = '<button onclick="restartTimed()">重新开始</button><button class="secondary" onclick="showMenu()">返回菜单</button>';
+            gameMessage.style.display = 'block';
+            timerDisplay.classList.remove('warning');
+        }
+
+        function restartTimed() {
+            level = 1;
+            timeRemaining = 60;
+            timerDisplay.classList.remove('warning');
+            initLevel();
+        }
+
+        function nextLevel() {
+            level++;
+            initLevel();
+        }
+
+        function resetLevel() {
+            if (gameMode === 'timed') {
+                timeRemaining = 60;
+                timerDisplay.classList.remove('warning');
+            }
+            initLevel();
+        }
+
+        function gameLoop(timestamp) {
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+            
+            update(deltaTime);
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+        });
+
+        canvas.addEventListener('click', () => {
+            if (currentBlock && currentBlock.isControlled && gameState === 'playing') {
+                dropBlock();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if ((e.key === ' ' || e.key === 'Enter') && gameState === 'playing') {
+                if (currentBlock && currentBlock.isControlled) {
+                    dropBlock();
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        resetBtn.addEventListener('click', resetLevel);
+        menuBtn.addEventListener('click', showMenu);
+
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>顺流通途</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f0f7ff 0%, #e8e4f0 50%, #f5eef8 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 15px 25px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            color: #5c4033;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        .level-info {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 12px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .btn-reset {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #5c4033;
+        }
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 154, 158, 0.4);
+        }
+        canvas {
+            border: none;
+            border-radius: 20px;
+            background: #fafbfc;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        }
+        .status {
+            font-size: 18px;
+            color: #7a5c4a;
+            text-align: center;
+            font-weight: 500;
+        }
+        .win-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            color: #5c4033;
+            padding: 40px 60px;
+            border-radius: 25px;
+            font-size: 32px;
+            font-weight: bold;
+            display: none;
+            z-index: 100;
+            animation: popIn 0.5s ease;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        .instructions {
+            color: #9a8b7c;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <div class="level-info">关卡: <span id="level">1</span></div>
+            <div class="btn-group">
+                <button class="btn btn-reset" id="resetBtn">重置本局</button>
+            </div>
+        </div>
+        <canvas id="gameCanvas" width="480" height="480"></canvas>
+        <div class="status" id="status">点击旋转管道，拖拽移动管道，连通起点到终点即可通关！</div>
+        <div class="instructions">起点在左上角，终点在右下角</div>
+        <div class="win-message" id="winMessage">🎉 通关成功！ 🎉</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const levelDisplay = document.getElementById('level');
+        const statusDisplay = document.getElementById('status');
+        const winMessage = document.getElementById('winMessage');
+        const resetBtn = document.getElementById('resetBtn');
+
+        const TILE_SIZE = 60;
+        const GRID_WIDTH = 8;
+        const GRID_HEIGHT = 8;
+
+        const PIPE_TYPES = {
+            STRAIGHT: 0,
+            CURVE: 1,
+            T_JUNCTION: 2
+        };
+
+        const DIRECTIONS = {
+            TOP: 0,
+            RIGHT: 1,
+            BOTTOM: 2,
+            LEFT: 3
+        };
+
+        const DIR_OPPOSITE = [DIRECTIONS.BOTTOM, DIRECTIONS.LEFT, DIRECTIONS.TOP, DIRECTIONS.RIGHT];
+        const DIR_OFFSET = [
+            { x: 0, y: -1 },
+            { x: 1, y: 0 },
+            { x: 0, y: 1 },
+            { x: -1, y: 0 }
+        ];
+
+        let grid = [];
+        let level = 1;
+        let isWon = false;
+        let startTile = { x: 0, y: 0 };
+        let endTile = { x: GRID_WIDTH - 1, y: GRID_HEIGHT - 1 };
+        let isDragging = false;
+        let dragTile = null;
+        let dragOffset = { x: 0, y: 0 };
+
+        class Tile {
+            constructor(x, y, type, rotation) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.rotation = rotation;
+                this.connections = this.calculateConnections();
+            }
+
+            calculateConnections() {
+                let connections = [];
+                switch (this.type) {
+                    case PIPE_TYPES.STRAIGHT:
+                        connections = [DIRECTIONS.TOP, DIRECTIONS.BOTTOM];
+                        break;
+                    case PIPE_TYPES.CURVE:
+                        connections = [DIRECTIONS.RIGHT, DIRECTIONS.BOTTOM];
+                        break;
+                    case PIPE_TYPES.T_JUNCTION:
+                        connections = [DIRECTIONS.TOP, DIRECTIONS.RIGHT, DIRECTIONS.BOTTOM];
+                        break;
+                }
+                let rotated = [];
+                for (let i = 0; i < connections.length; i++) {
+                    rotated.push((connections[i] + this.rotation) % 4);
+                }
+                return rotated;
+            }
+
+            hasConnection(dir) {
+                return this.connections.includes(dir);
+            }
+
+            rotate() {
+                this.rotation = (this.rotation + 1) % 4;
+                this.connections = this.calculateConnections();
+            }
+
+            draw(ctx, tileSize) {
+                const cx = this.x * tileSize + tileSize / 2;
+                const cy = this.y * tileSize + tileSize / 2;
+                const pipeWidth = tileSize * 0.28;
+                const halfPipe = pipeWidth / 2;
+
+                ctx.strokeStyle = '#a8d8ea';
+                ctx.lineWidth = pipeWidth;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                ctx.beginPath();
+                switch (this.type) {
+                    case PIPE_TYPES.STRAIGHT:
+                        if (this.rotation === 0 || this.rotation === 2) {
+                            ctx.moveTo(cx, this.y * tileSize + halfPipe);
+                            ctx.lineTo(cx, (this.y + 1) * tileSize - halfPipe);
+                        } else {
+                            ctx.moveTo(this.x * tileSize + halfPipe, cy);
+                            ctx.lineTo((this.x + 1) * tileSize - halfPipe, cy);
+                        }
+                        break;
+                    case PIPE_TYPES.CURVE:
+                        if (this.rotation === 0) {
+                            ctx.moveTo(cx, (this.y + 1) * tileSize - halfPipe);
+                            ctx.lineTo(cx, cy);
+                            ctx.lineTo((this.x + 1) * tileSize - halfPipe, cy);
+                        } else if (this.rotation === 1) {
+                            ctx.moveTo((this.x + 1) * tileSize - halfPipe, cy);
+                            ctx.lineTo(cx, cy);
+                            ctx.lineTo(cx, this.y * tileSize + halfPipe);
+                        } else if (this.rotation === 2) {
+                            ctx.moveTo(cx, this.y * tileSize + halfPipe);
+                            ctx.lineTo(cx, cy);
+                            ctx.lineTo(this.x * tileSize + halfPipe, cy);
+                        } else {
+                            ctx.moveTo(this.x * tileSize + halfPipe, cy);
+                            ctx.lineTo(cx, cy);
+                            ctx.lineTo(cx, (this.y + 1) * tileSize - halfPipe);
+                        }
+                        break;
+                    case PIPE_TYPES.T_JUNCTION:
+                        if (this.rotation === 0) {
+                            ctx.moveTo(cx, this.y * tileSize + halfPipe);
+                            ctx.lineTo(cx, (this.y + 1) * tileSize - halfPipe);
+                            ctx.moveTo(cx, cy);
+                            ctx.lineTo((this.x + 1) * tileSize - halfPipe, cy);
+                        } else if (this.rotation === 1) {
+                            ctx.moveTo(this.x * tileSize + halfPipe, cy);
+                            ctx.lineTo((this.x + 1) * tileSize - halfPipe, cy);
+                            ctx.moveTo(cx, cy);
+                            ctx.lineTo(cx, (this.y + 1) * tileSize - halfPipe);
+                        } else if (this.rotation === 2) {
+                            ctx.moveTo(cx, this.y * tileSize + halfPipe);
+                            ctx.lineTo(cx, (this.y + 1) * tileSize - halfPipe);
+                            ctx.moveTo(cx, cy);
+                            ctx.lineTo(this.x * tileSize + halfPipe, cy);
+                        } else {
+                            ctx.moveTo(this.x * tileSize + halfPipe, cy);
+                            ctx.lineTo((this.x + 1) * tileSize - halfPipe, cy);
+                            ctx.moveTo(cx, cy);
+                            ctx.lineTo(cx, this.y * tileSize + halfPipe);
+                        }
+                        break;
+                }
+                ctx.stroke();
+
+                ctx.fillStyle = '#cce5f0';
+                ctx.lineWidth = pipeWidth * 0.6;
+                ctx.stroke();
+
+                ctx.strokeStyle = 'rgba(200, 200, 200, 0.2)';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(this.x * tileSize + 1, this.y * tileSize + 1, tileSize - 2, tileSize - 2);
+            }
+        }
+
+        function generateLevel() {
+            grid = [];
+
+            for (let y = 0; y < GRID_HEIGHT; y++) {
+                grid[y] = [];
+                for (let x = 0; x < GRID_WIDTH; x++) {
+                    grid[y][x] = null;
+                }
+            }
+
+            if (level === 1) {
+                generateFirstLevel();
+            } else {
+                generateNormalLevel();
+            }
+        }
+
+        function generateFirstLevel() {
+            const middlePositions = [
+                { x: 1, y: 0 }, { x: 2, y: 0 },
+                { x: 3, y: 0 }, { x: 4, y: 0 }, { x: 5, y: 0 }, { x: 6, y: 0 },
+                { x: 0, y: 1 }, { x: 1, y: 1 }, { x: 2, y: 1 }, { x: 3, y: 1 },
+                { x: 4, y: 1 }, { x: 5, y: 1 }, { x: 6, y: 1 }, { x: 7, y: 1 },
+                { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 2, y: 2 }, { x: 3, y: 2 },
+                { x: 4, y: 2 }, { x: 5, y: 2 }, { x: 6, y: 2 }, { x: 7, y: 2 },
+                { x: 0, y: 3 }, { x: 1, y: 3 }, { x: 2, y: 3 }, { x: 3, y: 3 },
+                { x: 4, y: 3 }, { x: 5, y: 3 }, { x: 6, y: 3 }, { x: 7, y: 3 },
+                { x: 0, y: 4 }, { x: 1, y: 4 }, { x: 2, y: 4 }, { x: 3, y: 4 },
+                { x: 4, y: 4 }, { x: 5, y: 4 }, { x: 6, y: 4 }, { x: 7, y: 4 },
+                { x: 0, y: 5 }, { x: 1, y: 5 }, { x: 2, y: 5 }, { x: 3, y: 5 },
+                { x: 4, y: 5 }, { x: 5, y: 5 }, { x: 6, y: 5 }, { x: 7, y: 5 },
+                { x: 1, y: 6 }, { x: 2, y: 6 }, { x: 3, y: 6 }, { x: 4, y: 6 },
+                { x: 5, y: 6 }, { x: 6, y: 6 },
+                { x: 1, y: 7 }, { x: 2, y: 7 }, { x: 3, y: 7 }, { x: 4, y: 7 },
+                { x: 5, y: 7 }, { x: 6, y: 7 }
+            ];
+
+            shuffleArray(middlePositions);
+
+            const selectedPositions = middlePositions.slice(0, 6);
+
+            for (let i = 0; i < selectedPositions.length; i++) {
+                const pos = selectedPositions[i];
+                const type = Math.random() < 0.5 ? PIPE_TYPES.STRAIGHT : PIPE_TYPES.CURVE;
+                const rotation = Math.floor(Math.random() * 4);
+                grid[pos.y][pos.x] = new Tile(pos.x, pos.y, type, rotation);
+            }
+
+            grid[startTile.y][startTile.x] = new Tile(startTile.x, startTile.y, PIPE_TYPES.STRAIGHT, DIRECTIONS.RIGHT);
+            grid[endTile.y][endTile.x] = new Tile(endTile.x, endTile.y, PIPE_TYPES.STRAIGHT, DIRECTIONS.LEFT);
+        }
+
+        function generateNormalLevel() {
+            const totalTiles = 6 + level * 2;
+            const tilesNeeded = Math.min(totalTiles, GRID_WIDTH * GRID_HEIGHT - 2);
+
+            const positions = [];
+            for (let y = 0; y < GRID_HEIGHT; y++) {
+                for (let x = 0; x < GRID_WIDTH; x++) {
+                    if (!((x === startTile.x && y === startTile.y) || (x === endTile.x && y === endTile.y))) {
+                        positions.push({ x, y });
+                    }
+                }
+            }
+
+            shuffleArray(positions);
+
+            for (let i = 0; i < Math.min(tilesNeeded, positions.length); i++) {
+                const pos = positions[i];
+                const type = Math.random() < 0.4 ? PIPE_TYPES.STRAIGHT :
+                             Math.random() < 0.7 ? PIPE_TYPES.CURVE : PIPE_TYPES.T_JUNCTION;
+                const rotation = Math.floor(Math.random() * 4);
+                grid[pos.y][pos.x] = new Tile(pos.x, pos.y, type, rotation);
+            }
+
+            grid[startTile.y][startTile.x] = new Tile(startTile.x, startTile.y, PIPE_TYPES.STRAIGHT, DIRECTIONS.RIGHT);
+            grid[endTile.y][endTile.x] = new Tile(endTile.x, endTile.y, PIPE_TYPES.STRAIGHT, DIRECTIONS.LEFT);
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function checkConnection() {
+            const visited = new Set();
+            const queue = [{ x: startTile.x, y: startTile.y, fromDir: -1 }];
+            visited.add(`${startTile.x},${startTile.y}`);
+
+            while (queue.length > 0) {
+                const current = queue.shift();
+                const tile = grid[current.y][current.x];
+
+                if (!tile) continue;
+
+                if (current.x === endTile.x && current.y === endTile.y) {
+                    return true;
+                }
+
+                for (const dir of tile.connections) {
+                    if (current.fromDir !== -1 && dir === DIR_OPPOSITE[current.fromDir]) {
+                        continue;
+                    }
+
+                    const nx = current.x + DIR_OFFSET[dir].x;
+                    const ny = current.y + DIR_OFFSET[dir].y;
+
+                    if (nx < 0 || nx >= GRID_WIDTH || ny < 0 || ny >= GRID_HEIGHT) {
+                        continue;
+                    }
+
+                    const key = `${nx},${ny}`;
+                    if (visited.has(key)) continue;
+
+                    const neighbor = grid[ny][nx];
+                    if (!neighbor) continue;
+
+                    if (neighbor.hasConnection(DIR_OPPOSITE[dir])) {
+                        visited.add(key);
+                        queue.push({ x: nx, y: ny, fromDir: dir });
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        function drawStartEndMarkers() {
+            const startCx = startTile.x * TILE_SIZE + TILE_SIZE / 2;
+            const startCy = startTile.y * TILE_SIZE + TILE_SIZE / 2;
+            ctx.fillStyle = '#8b6914';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('起点', startCx, startCy);
+
+            const endCx = endTile.x * TILE_SIZE + TILE_SIZE / 2;
+            const endCy = endTile.y * TILE_SIZE + TILE_SIZE / 2;
+            ctx.fillStyle = '#8b5a5a';
+            ctx.fillText('终点', endCx, endCy);
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(200, 200, 200, 0.3)';
+            ctx.lineWidth = 1;
+
+            for (let x = 0; x <= GRID_WIDTH; x++) {
+                ctx.beginPath();
+                ctx.moveTo(x * TILE_SIZE, 0);
+                ctx.lineTo(x * TILE_SIZE, canvas.height);
+                ctx.stroke();
+            }
+
+            for (let y = 0; y <= GRID_HEIGHT; y++) {
+                ctx.beginPath();
+                ctx.moveTo(0, y * TILE_SIZE);
+                ctx.lineTo(canvas.width, y * TILE_SIZE);
+                ctx.stroke();
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#fafbfc';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawGrid();
+
+            for (let y = 0; y < GRID_HEIGHT; y++) {
+                for (let x = 0; x < GRID_WIDTH; x++) {
+                    if (grid[y] && grid[y][x]) {
+                        grid[y][x].draw(ctx, TILE_SIZE);
+                    }
+                }
+            }
+
+            drawStartEndMarkers();
+
+            if (isDragging && dragTile) {
+                ctx.save();
+                ctx.globalAlpha = 0.8;
+                ctx.shadowColor = '#a8d8ea';
+                ctx.shadowBlur = 15;
+                dragTile.draw(ctx, TILE_SIZE);
+                ctx.restore();
+            }
+        }
+
+        function handleMouseDown(event) {
+            if (isWon) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            const tileX = Math.floor(mouseX / TILE_SIZE);
+            const tileY = Math.floor(mouseY / TILE_SIZE);
+
+            if (tileX < 0 || tileX >= GRID_WIDTH || tileY < 0 || tileY >= GRID_HEIGHT) {
+                return;
+            }
+
+            if (grid[tileY] && grid[tileY][tileX]) {
+                isDragging = true;
+                dragTile = grid[tileY][tileX];
+                dragOffset = { x: mouseX - tileX * TILE_SIZE, y: mouseY - tileY * TILE_SIZE };
+                grid[tileY][tileX] = null;
+                draw();
+            }
+        }
+
+        function handleMouseMove(event) {
+            if (!isDragging || !dragTile) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            const tileX = Math.floor((mouseX - dragOffset.x) / TILE_SIZE);
+            const tileY = Math.floor((mouseY - dragOffset.y) / TILE_SIZE);
+
+            const clampedX = Math.max(0, Math.min(tileX, GRID_WIDTH - 1));
+            const clampedY = Math.max(0, Math.min(tileY, GRID_HEIGHT - 1));
+
+            dragTile.x = clampedX;
+            dragTile.y = clampedY;
+            draw();
+        }
+
+        function handleMouseUp(event) {
+            if (!isDragging || !dragTile) return;
+
+            const targetX = dragTile.x;
+            const targetY = dragTile.y;
+
+            if (targetX === startTile.x && targetY === startTile.y) {
+                const temp = grid[targetY][targetX];
+                grid[targetY][targetX] = dragTile;
+                grid[startTile.y][startTile.x] = temp;
+            } else if (targetX === endTile.x && targetY === endTile.y) {
+                const temp = grid[targetY][targetX];
+                grid[targetY][targetX] = dragTile;
+                grid[endTile.y][endTile.x] = temp;
+            } else {
+                if (grid[targetY][targetX]) {
+                    const temp = grid[targetY][targetX];
+                    grid[targetY][targetX] = dragTile;
+                    const originalPos = findTilePosition(temp);
+                    if (originalPos) {
+                        grid[originalPos.y][originalPos.x] = temp;
+                    }
+                } else {
+                    grid[targetY][targetX] = dragTile;
+                }
+            }
+
+            isDragging = false;
+            dragTile = null;
+            draw();
+
+            if (checkConnection()) {
+                isWon = true;
+                winMessage.style.display = 'block';
+                statusDisplay.textContent = '🎉 恭喜通关！自动进入下一关...';
+                setTimeout(() => {
+                    level++;
+                    levelDisplay.textContent = level;
+                    winMessage.style.display = 'none';
+                    isWon = false;
+                    generateLevel();
+                    draw();
+                    statusDisplay.textContent = '点击旋转管道，拖拽移动管道，连通起点到终点即可通关！';
+                }, 2000);
+            }
+        }
+
+        function findTilePosition(tile) {
+            for (let y = 0; y < GRID_HEIGHT; y++) {
+                for (let x = 0; x < GRID_WIDTH; x++) {
+                    if (grid[y][x] === tile) {
+                        return { x, y };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function handleClick(event) {
+            if (isWon || isDragging) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            const tileX = Math.floor(mouseX / TILE_SIZE);
+            const tileY = Math.floor(mouseY / TILE_SIZE);
+
+            if (tileX < 0 || tileX >= GRID_WIDTH || tileY < 0 || tileY >= GRID_HEIGHT) {
+                return;
+            }
+
+            if (grid[tileY] && grid[tileY][tileX]) {
+                grid[tileY][tileX].rotate();
+                draw();
+
+                if (checkConnection()) {
+                    isWon = true;
+                    winMessage.style.display = 'block';
+                    statusDisplay.textContent = '🎉 恭喜通关！自动进入下一关...';
+                    setTimeout(() => {
+                        level++;
+                        levelDisplay.textContent = level;
+                        winMessage.style.display = 'none';
+                        isWon = false;
+                        generateLevel();
+                        draw();
+                        statusDisplay.textContent = '点击旋转管道，拖拽移动管道，连通起点到终点即可通关！';
+                    }, 2000);
+                }
+            }
+        }
+
+        function resetGame() {
+            isWon = false;
+            winMessage.style.display = 'none';
+            level = 1;
+            levelDisplay.textContent = level;
+            generateLevel();
+            draw();
+            statusDisplay.textContent = '点击旋转管道，拖拽移动管道，连通起点到终点即可通关！';
+        }
+
+        canvas.addEventListener('click', handleClick);
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('mouseleave', handleMouseUp);
+        resetBtn.addEventListener('click', resetGame);
+
+        generateLevel();
+        draw();
+    </script>
+</body>
+</html>

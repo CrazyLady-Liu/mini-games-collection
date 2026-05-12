@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>悠游拼方</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-container">
+    <header class="game-header">
+      <h1>悠游拼方</h1>
+      
+      <div class="mode-switch">
+        <button class="mode-btn active" id="relaxModeBtn">佛系模式</button>
+        <button class="mode-btn" id="timerModeBtn">计时模式</button>
+      </div>
+
+      <div class="game-stats" id="gameStats">
+        <span class="timer" id="timer">00:00</span>
+      </div>
+    </header>
+
+    <div class="puzzle-board" id="puzzleBoard">
+      <div class="tile empty" data-index="8"></div>
+    </div>
+
+    <div class="button-group">
+      <button class="btn btn-reset" id="resetBtn">重置本局</button>
+      <button class="btn btn-shuffle" id="shuffleBtn">重新打乱</button>
+    </div>
+
+    <div class="success-overlay" id="successOverlay">
+      <div class="success-content">
+        <div class="success-icon">🎉</div>
+        <h2>恭喜通关！</h2>
+        <p class="success-steps">你用了 <span id="finalMoves">0</span> 步完成</p>
+        <p class="success-time" id="successTime"></p>
+        <button class="btn btn-next" id="nextBtn">开始新一局</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

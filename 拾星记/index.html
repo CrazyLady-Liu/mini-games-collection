@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拾星记</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="score-board">
+            <span>得分: <span id="score">0</span></span>
+            <button id="pauseBtn" class="pause-btn">暂停</button>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="bottom-bar">
+            <button id="restartBtn" class="restart-btn">重新开始</button>
+        </div>
+        <div id="startScreen" class="overlay">
+            <h1>拾星记</h1>
+            <p>使用 ← → 方向键移动角色</p>
+            <p>收集星光，避开障碍物！</p>
+            <button id="startBtn">开始游戏</button>
+        </div>
+        <div id="gameOverScreen" class="overlay hidden">
+            <h1>游戏结束</h1>
+            <p>最终得分: <span id="finalScore">0</span></p>
+            <button id="gameOverRestartBtn">重新开始</button>
+        </div>
+        <div id="pauseScreen" class="overlay hidden pause-overlay">
+            <h1>游戏暂停</h1>
+            <p>点击继续按钮恢复游戏</p>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
