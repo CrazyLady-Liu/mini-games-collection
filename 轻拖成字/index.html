@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>轻拖成字</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>轻拖成字</h1>
+            <p class="instruction">拖动笔画到方格内，拼出完整汉字</p>
+        </header>
+        
+        <div class="difficulty-selector">
+            <button class="difficulty-btn active" data-difficulty="simple">简单</button>
+            <button class="difficulty-btn" data-difficulty="normal">普通</button>
+            <button class="difficulty-btn" data-difficulty="hard">困难</button>
+        </div>
+        
+        <div class="target-hint" id="targetHint"></div>
+        
+        <div class="char-preview" id="charPreview"></div>
+        
+        <main>
+            <div class="target-area">
+                <div class="target-grid" id="targetGrid"></div>
+            </div>
+            
+            <div class="strokes-area">
+                <h3>笔画库</h3>
+                <div class="strokes-container" id="strokesContainer"></div>
+            </div>
+        </main>
+        
+        <div class="controls">
+            <button id="nextBtn" class="btn">下一个</button>
+            <button id="resetBtn" class="btn">重置</button>
+        </div>
+        
+        <div class="feedback" id="feedback"></div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>

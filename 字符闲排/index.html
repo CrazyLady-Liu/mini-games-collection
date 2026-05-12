@@ -15,11 +15,18 @@
 
         <div class="game-settings">
             <div class="setting-group">
+                <label for="difficulty">难度等级：</label>
+                <select id="difficulty">
+                    <option value="easy">简单</option>
+                    <option value="normal">普通</option>
+                    <option value="hard">困难</option>
+                </select>
+            </div>
+            <div class="setting-group" id="gameModeGroup">
                 <label for="gameMode">游戏模式：</label>
                 <select id="gameMode">
                     <option value="numbers">数字排序</option>
                     <option value="letters">字母排序</option>
-                    <option value="mixed">混合排序</option>
                 </select>
             </div>
             <div class="setting-group" id="sortModeGroup">
@@ -38,6 +45,16 @@
         </div>
 
         <div class="game-canvas" id="gameCanvas"></div>
+
+        <div class="progress-history-section">
+            <div class="history-header">
+                <h3>📊 闯关记录</h3>
+                <button id="clearHistoryBtn" class="btn-secondary">清空记录</button>
+            </div>
+            <div class="progress-history" id="progressHistory">
+                <p class="no-history">暂无闯关记录</p>
+            </div>
+        </div>
 
         <div class="success-message" id="successMessage">
             <div class="success-content">
