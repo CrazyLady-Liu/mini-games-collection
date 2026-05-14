@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一笔星轨</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="starfield"></div>
+        
+        <div class="ui-top">
+            <div class="level-info">
+                <span class="label">关卡</span>
+                <span class="value" id="level">1</span>
+            </div>
+            <div class="connected-info">
+                <span class="label">已连</span>
+                <span class="value" id="connected">0</span>
+                <span class="label">/</span>
+                <span class="value" id="total">0</span>
+            </div>
+            <div class="steps-info">
+                <span class="label">步数</span>
+                <span class="value" id="steps">0</span>
+            </div>
+            <div class="status" id="status"></div>
+        </div>
+        
+        <div class="ui-top-right">
+            <button class="btn-help" id="btn-help">如何玩</button>
+            <button class="btn-pause" id="btn-pause">暂停</button>
+        </div>
+        
+        <canvas id="game-canvas"></canvas>
+        
+        <div class="ui-bottom">
+            <button class="btn-action btn-restart" id="btn-restart">重新开始</button>
+            <button class="btn-action btn-clear" id="btn-clear">清空连线</button>
+        </div>
+        
+        <div class="modal-overlay" id="modal-overlay">
+            <div class="modal">
+                <h2>如何玩</h2>
+                <div class="help-content">
+                    <p>🎮 <strong>游戏规则：</strong></p>
+                    <ul>
+                        <li>按住鼠标或手指，按数字顺序依次连接星星</li>
+                        <li>必须从数字1开始，按1→2→3……的顺序连接</li>
+                        <li>跳序连接无效，会提示错误</li>
+                        <li>连线不能交叉重叠，交叉会提示错误</li>
+                        <li>连接过程中可以随时松开，再次按住继续</li>
+                    </ul>
+                    <p>📊 <strong>关卡说明：</strong></p>
+                    <ul>
+                        <li>低关卡：星星数量少，排布宽松</li>
+                        <li>高关卡：星星数量多，排布密集复杂</li>
+                    </ul>
+                    <p>🔧 <strong>操作按钮：</strong></p>
+                    <ul>
+                        <li>重新开始：重置当前关卡</li>
+                        <li>清空连线：清除当前所有连线</li>
+                    </ul>
+                </div>
+                <button class="btn-close" id="btn-close">关闭</button>
+            </div>
+        </div>
+        
+        <div class="modal-overlay" id="pause-overlay">
+            <div class="modal">
+                <h2>游戏暂停</h2>
+                <p>游戏已暂停，点击继续按钮恢复游戏</p>
+                <button class="btn-close" id="btn-resume">继续</button>
+            </div>
+        </div>
+        
+        <div class="modal-overlay" id="success-overlay">
+            <div class="modal success-modal">
+                <h2>🎉 恭喜通关！</h2>
+                <p>你用 <span id="final-steps">0</span> 步完成了第 <span id="final-level">1</span> 关</p>
+                <button class="btn-next" id="btn-next">下一关</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>

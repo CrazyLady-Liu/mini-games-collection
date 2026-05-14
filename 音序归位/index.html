@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音序归位 - 音乐排序游戏</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <div class="info-item level-item">
+                <span class="label">关卡</span>
+                <span class="value level">1</span>
+            </div>
+            <div class="info-item hints-item">
+                <span class="label">剩余提示</span>
+                <span class="value hints">3</span>
+            </div>
+            <div class="info-item moves-item">
+                <span class="label">已用步数</span>
+                <span class="value moves">0</span>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="track-container">
+                <div class="track">
+                    <div class="notes-container" id="notesContainer"></div>
+                </div>
+            </div>
+
+            <div class="game-tip">
+                <span class="tip-icon">💡</span>
+                拖拽音符，按 1→2→3→4→5 从左到右排序
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-retry" id="btnRetry">重新开始</button>
+                <button class="btn-hint" id="btnHint">使用提示</button>
+                <button class="btn-check" id="btnCheck">一键校验</button>
+            </div>
+        </div>
+
+        <div class="win-modal" id="winModal">
+            <div class="modal-content">
+                <h2>🎉 恭喜通关！</h2>
+                <p>关卡 <span id="winLevel">1</span> 完成</p>
+                <p>用时步数: <span id="winMoves">0</span></p>
+                <button class="btn-next" id="btnNext">下一关</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

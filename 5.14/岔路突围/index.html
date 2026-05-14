@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>岔路突围</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <div class="bg-pattern"></div>
+        
+        <div class="game-ui">
+            <div class="top-bar">
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="label">关卡</span>
+                        <span class="value" id="level">1</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">尝试次数</span>
+                        <span class="value" id="attempts">0</span>
+                    </div>
+                </div>
+                <div class="top-buttons">
+                    <button class="btn btn-how-to-play" id="howToPlayBtn">如何玩</button>
+                    <button class="btn btn-restart" id="restartBtn">重新开始</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-area" id="gameArea">
+            <div class="start-point" id="startPoint">
+                <div class="point-icon start-icon"></div>
+                <span class="point-label">起点</span>
+            </div>
+            <div class="end-point" id="endPoint">
+                <div class="point-icon end-icon"></div>
+                <span class="point-label">终点</span>
+            </div>
+            <svg class="maze-svg" id="mazeSvg"></svg>
+            <div class="path-container" id="pathContainer"></div>
+        </div>
+        
+        <div class="message-overlay" id="messageOverlay">
+            <div class="message-box" id="messageBox">
+                <div class="message-icon" id="messageIcon"></div>
+                <h2 class="message-title" id="messageTitle"></h2>
+                <p class="message-text" id="messageText"></p>
+                <button class="btn btn-message" id="messageBtn"></button>
+            </div>
+        </div>
+        
+        <div class="modal" id="howToPlayModal">
+            <div class="modal-content">
+                <h2>如何玩</h2>
+                <p>选择一条从起点到终点的路径</p>
+                <p>只有一条路径可以到达终点</p>
+                <p>选错路径会重置本关，快速试错闯关！</p>
+                <button class="btn" id="closeModalBtn">开始游戏</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

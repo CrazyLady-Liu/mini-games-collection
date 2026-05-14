@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏性能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.3s ease;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .result.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .result.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .stats {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .stats h3 {
+            margin-top: 0;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        #test-output {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .iframe-container {
+            display: none;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>滩边拾贝 - 性能测试</h1>
+        <p>测试内容：连续进入游戏→退出，重复20轮</p>
+        
+        <button onclick="startTest()">开始测试</button>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+        
+        <div id="test-output"></div>
+        
+        <div class="stats" id="stats" style="display: none;">
+            <h3>测试统计</h3>
+            <p>总测试次数: <span id="total-count">0</span></p>
+            <p>成功次数: <span id="success-count">0</span></p>
+            <p>失败次数: <span id="error-count">0</span></p>
+            <p>平均每轮耗时: <span id="avg-time">0</span>ms</p>
+            <p>总耗时: <span id="total-time">0</span>ms</p>
+            <p>内存使用峰值: <span id="memory-peak">0</span>MB</p>
+            <p>最大FPS波动: <span id="fps-variance">0</span></p>
+        </div>
+        
+        <div class="iframe-container" id="game-iframe-container">
+            <iframe id="game-iframe" src="index.html"></iframe>
+        </div>
+    </div>
+
+    <script>
+        let testResults = [];
+        let currentRound = 0;
+        let totalStartTime = 0;
+        let memoryPeak = 0;
+        let fpsValues = [];
+        let gameIframe = null;
+
+        async function startTest() {
+            testResults = [];
+            currentRound = 0;
+            totalStartTime = performance.now();
+            memoryPeak = 0;
+            fpsValues = [];
+            
+            document.getElementById('test-output').innerHTML = '';
+            document.getElementById('stats').style.display = 'none';
+            
+            gameIframe = document.getElementById('game-iframe');
+            document.getElementById('game-iframe-container').style.display = 'block';
+            
+            await runTestRound();
+        }
+
+        async function runTestRound() {
+            currentRound++;
+            
+            const roundStartTime = performance.now();
+            let success = true;
+            let errorMessage = '';
+            
+            try {
+                await delay(500);
+                
+                await startGameInIframe();
+                
+                await delay(2000);
+                
+                await captureFPS();
+                
+                await quitGameInIframe();
+                
+                if (performance.memory) {
+                    const memoryMB = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(2);
+                    memoryPeak = Math.max(memoryPeak, parseFloat(memoryMB));
+                }
+            } catch (error) {
+                success = false;
+                errorMessage = error.message;
+            }
+            
+            const roundTime = performance.now() - roundStartTime;
+            
+            testResults.push({
+                round: currentRound,
+                success,
+                time: roundTime,
+                error: errorMessage
+            });
+            
+            addResult(currentRound, success, roundTime, errorMessage);
+            updateProgress();
+            
+            if (currentRound < 20) {
+                await delay(500);
+                await runTestRound();
+            } else {
+                finishTest();
+            }
+        }
+
+        async function startGameInIframe() {
+            return new Promise((resolve, reject) => {
+                try {
+                    const iframeDoc = gameIframe.contentDocument || gameIframe.contentWindow.document;
+                    const startBtn = iframeDoc.getElementById('start-btn');
+                    if (startBtn) {
+                        startBtn.click();
+                    }
+                    
+                    setTimeout(() => {
+                        const levelBtn = iframeDoc.getElementById('level-grid')?.querySelector('.unlocked');
+                        if (levelBtn) {
+                            levelBtn.click();
+                        }
+                        resolve();
+                    }, 300);
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }
+
+        async function quitGameInIframe() {
+            return new Promise((resolve, reject) => {
+                try {
+                    const iframeDoc = gameIframe.contentDocument || gameIframe.contentWindow.document;
+                    
+                    const pauseBtn = iframeDoc.getElementById('pause-btn');
+                    if (pauseBtn) {
+                        pauseBtn.click();
+                        
+                        setTimeout(() => {
+                            const quitBtn = iframeDoc.getElementById('quit-btn');
+                            if (quitBtn) {
+                                quitBtn.click();
+                            }
+                            setTimeout(() => {
+                                resolve();
+                            }, 300);
+                        }, 300);
+                    } else {
+                        resolve();
+                    }
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }
+
+        async function captureFPS() {
+            return new Promise((resolve) => {
+                let frameCount = 0;
+                const startTime = performance.now();
+                
+                const measureFPS = () => {
+                    frameCount++;
+                    const elapsed = performance.now() - startTime;
+                    
+                    if (elapsed < 1000) {
+                        requestAnimationFrame(measureFPS);
+                    } else {
+                        const fps = Math.round(frameCount * 1000 / elapsed);
+                        fpsValues.push(fps);
+                        resolve();
+                    }
+                };
+                
+                requestAnimationFrame(measureFPS);
+            });
+        }
+
+        function addResult(round, success, time, error) {
+            const output = document.getElementById('test-output');
+            const div = document.createElement('div');
+            div.className = `result ${success ? 'success' : 'error'}`;
+            
+            if (success) {
+                div.innerHTML = `第 ${round} 轮: ✓ 成功 (${time.toFixed(2)}ms)`;
+            } else {
+                div.innerHTML = `第 ${round} 轮: ✗ 失败 - ${error}`;
+            }
+            
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function updateProgress() {
+            const progress = (currentRound / 20) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+        }
+
+        function finishTest() {
+            const totalTime = performance.now() - totalStartTime;
+            const successCount = testResults.filter(r => r.success).length;
+            const errorCount = testResults.filter(r => !r.success).length;
+            const avgTime = totalTime / 20;
+            
+            const fpsVariance = fpsValues.length > 0 ? 
+                Math.max(...fpsValues) - Math.min(...fpsValues) : 0;
+            
+            document.getElementById('total-count').textContent = 20;
+            document.getElementById('success-count').textContent = successCount;
+            document.getElementById('error-count').textContent = errorCount;
+            document.getElementById('avg-time').textContent = avgTime.toFixed(2);
+            document.getElementById('total-time').textContent = totalTime.toFixed(2);
+            document.getElementById('memory-peak').textContent = memoryPeak.toFixed(2);
+            document.getElementById('fps-variance').textContent = fpsVariance;
+            
+            document.getElementById('stats').style.display = 'block';
+            
+            const output = document.getElementById('test-output');
+            const summary = document.createElement('div');
+            summary.style.marginTop = '20px';
+            summary.style.padding = '15px';
+            summary.style.background = successCount === 20 ? '#e8f5e9' : '#fff3e0';
+            summary.style.borderRadius = '5px';
+            
+            if (successCount === 20) {
+                summary.innerHTML = `<strong>🎉 测试完成！全部20轮测试通过</strong>`;
+            } else {
+                summary.innerHTML = `<strong>⚠️ 测试完成！成功 ${successCount}/20 轮</strong>`;
+            }
+            
+            output.appendChild(summary);
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>

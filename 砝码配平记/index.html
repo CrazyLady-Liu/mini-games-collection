@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>砝码配平记</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>砝码配平记</h1>
+            <div class="level-info">
+                <span>第 <span id="current-level">1</span> 关</span>
+                <span class="target-weight">目标: <span id="target-display">?</span>g</span>
+                <span class="steps-info">步数: <span id="current-steps">0</span> / <span id="max-steps">12</span></span>
+            </div>
+        </header>
+
+        <div class="game-area">
+            <div class="balance-container">
+                <div class="balance-stand">
+                    <div class="stand-base"></div>
+                    <div class="stand-pillar"></div>
+                    <div class="balance-beam" id="balance-beam">
+                        <div class="beam-pointer" id="beam-pointer"></div>
+                        <div class="pan-container left-pan">
+                            <div class="pan" id="left-pan">
+                                <div class="weights-container" id="left-weights"></div>
+                            </div>
+                        </div>
+                        <div class="pan-container right-pan">
+                            <div class="pan" id="right-pan">
+                                <div class="weights-container" id="right-weights"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="weights-panel">
+                <div class="panel-title">砝码选择</div>
+                <div class="weights-grid">
+                    <button class="weight-btn" data-weight="1">1g</button>
+                    <button class="weight-btn" data-weight="2">2g</button>
+                    <button class="weight-btn" data-weight="5">5g</button>
+                    <button class="weight-btn" data-weight="10">10g</button>
+                </div>
+                <div class="pan-indicator" id="pan-indicator">点击选择要放置的托盘</div>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <button class="control-btn pause-btn" id="pause-btn">暂停</button>
+            <button class="control-btn restart-btn" id="restart-btn">重新开始</button>
+            <button class="control-btn hint-btn" id="hint-btn">新手指引</button>
+        </div>
+
+        <div class="weights-summary">
+            <div class="summary-item">
+                <span>左盘:</span>
+                <span id="left-weight">0g</span>
+            </div>
+            <div class="summary-item">
+                <span>右盘:</span>
+                <span id="right-weight">0g</span>
+            </div>
+            <div class="summary-item difference">
+                <span>差值:</span>
+                <span id="weight-difference">0g</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <p id="modal-message"></p>
+            <div class="modal-buttons">
+                <button class="modal-btn" id="modal-ok">确定</button>
+                <button class="modal-btn" id="modal-next" style="display:none;">下一关</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="hint-overlay" id="hint-overlay">
+        <div class="hint-content">
+            <h2>游戏说明</h2>
+            <ul>
+                <li>点击下方砝码选择要使用的砝码</li>
+                <li>然后点击左盘或右盘放置砝码</li>
+                <li>点击已放置的砝码可以移除它</li>
+                <li>目标是让左右两边重量差≤1g</li>
+                <li>每关会随机生成目标配比</li>
+            </ul>
+            <button class="hint-close" id="hint-close">知道了</button>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

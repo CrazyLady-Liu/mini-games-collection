@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>滩边拾贝</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="start-screen" class="screen">
+        <div class="start-content">
+            <h1>滩边拾贝</h1>
+            <p>在美丽的海边收集贝壳</p>
+            <p class="subtitle">限时内收集指定数量的贝壳即可通关！</p>
+            <button id="start-btn">开始游戏</button>
+        </div>
+    </div>
+    
+    <div id="level-select-screen" class="screen hidden">
+        <div class="level-select-content">
+            <h1>选择关卡</h1>
+            <div id="level-grid" class="level-grid"></div>
+            <button id="back-to-login-btn">返回登录</button>
+        </div>
+    </div>
+    
+    <div id="game-screen" class="screen hidden">
+        <div class="game-header">
+            <div class="level">关卡: <span id="level">1</span></div>
+            <div class="score">分数: <span id="score">0</span></div>
+            <div class="shells">贝壳: <span id="shells">0</span> / <span id="target-shells">10</span></div>
+            <div class="time">时间: <span id="time">60</span>s</div>
+            <button id="pause-btn">暂停</button>
+        </div>
+        <canvas id="game-canvas"></canvas>
+        <div class="game-footer">
+            <button id="reset-btn">重新开始</button>
+            <button id="level-select-btn">选择关卡</button>
+        </div>
+    </div>
+    
+    <div id="pause-screen" class="screen-overlay hidden">
+        <div class="overlay-content">
+            <h2>游戏暂停</h2>
+            <button id="resume-btn">继续游戏</button>
+            <button id="restart-btn">重新开始</button>
+            <button id="quit-btn">退出游戏</button>
+        </div>
+    </div>
+    
+    <div id="win-screen" class="screen-overlay hidden">
+        <div class="overlay-content">
+            <h2>🎉 恭喜通关！</h2>
+            <p>最终分数: <span id="final-score">0</span></p>
+            <p>收集贝壳: <span id="final-shells">0</span></p>
+            <p>当前关卡: <span id="final-level">1</span></p>
+            <button id="next-level-btn">下一关</button>
+            <button id="play-again-btn">再玩一次</button>
+            <button id="back-to-level-btn">返回选关</button>
+        </div>
+    </div>
+    
+    <div id="fail-screen" class="screen-overlay hidden">
+        <div class="overlay-content">
+            <h2>⏰ 时间到！</h2>
+            <p>差一点就成功了！</p>
+            <p>收集贝壳: <span id="fail-shells">0</span> / <span id="fail-target">10</span></p>
+            <button id="retry-btn">再试一次</button>
+            <button id="back-to-level-btn2">返回选关</button>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
