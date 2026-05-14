@@ -1,0 +1,421 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    color: #fff;
+}
+
+.game-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.game-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.game-header h1 {
+    font-size: 3rem;
+    color: #e94560;
+    text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+    margin-bottom: 15px;
+}
+
+.game-info {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    font-size: 1.2rem;
+}
+
+.info-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 25px;
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
+}
+
+.info-item .label {
+    color: #aaa;
+    margin-right: 10px;
+}
+
+.game-main {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.game-area {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tower-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+#tower {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 2px;
+    position: relative;
+    z-index: 1;
+}
+
+.base-platform {
+    width: 400px;
+    height: 20px;
+    background: linear-gradient(90deg, #4a5568, #718096, #4a5568);
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    position: relative;
+    margin-top: 2px;
+}
+
+.base-platform::before {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #2d3748, #4a5568, #2d3748);
+    border-radius: 0 0 5px 5px;
+}
+
+.block {
+    width: 80px;
+    height: 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+    border-radius: 5px 5px 0 0;
+    pointer-events: none;
+}
+
+.block.removable {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 3px 10px rgba(0, 0, 0, 0.3);
+    animation: glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.4), 0 3px 10px rgba(0, 0, 0, 0.3);
+    }
+    to {
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.8), 0 3px 10px rgba(0, 0, 0, 0.3);
+    }
+}
+
+.block.not-removable {
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.block.falling {
+    animation: fall 0.8s ease-in forwards;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(500px) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+.block.warning {
+    animation: shake 0.3s ease-in-out infinite, warning-glow 0.5s ease-in-out infinite alternate;
+    z-index: 10;
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0) rotate(0deg);
+    }
+    25% {
+        transform: translateX(-2px) rotate(-0.5deg);
+    }
+    50% {
+        transform: translateX(2px) rotate(0.5deg);
+    }
+    75% {
+        transform: translateX(-1px) rotate(-0.3deg);
+    }
+}
+
+@keyframes warning-glow {
+    from {
+        box-shadow: 0 0 10px rgba(255, 140, 0, 0.5), 0 3px 10px rgba(0, 0, 0, 0.3);
+    }
+    to {
+        box-shadow: 0 0 25px rgba(255, 140, 0, 0.9), 0 0 40px rgba(255, 69, 0, 0.4), 0 3px 10px rgba(0, 0, 0, 0.3);
+    }
+}
+
+#tower.collapsing {
+    animation: tower-collapse 0.6s ease-in forwards;
+}
+
+@keyframes tower-collapse {
+    0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    30% {
+        transform: translateY(-10px) rotate(-3deg) scale(1.02);
+    }
+    60% {
+        transform: translateY(50px) rotate(8deg) scale(0.95);
+    }
+    100% {
+        transform: translateY(200px) rotate(15deg) scale(0.8);
+        opacity: 0;
+    }
+}
+
+.block.collapsing {
+    animation: block-collapse 0.5s ease-in forwards;
+}
+
+@keyframes block-collapse {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(300px) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+.game-side {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.game-rules {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.game-rules h3 {
+    color: #e94560;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+.game-rules ul {
+    list-style: none;
+}
+
+.game-rules li {
+    margin-bottom: 10px;
+    padding-left: 20px;
+    position: relative;
+    line-height: 1.6;
+}
+
+.game-rules li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #e94560;
+    font-weight: bold;
+}
+
+.game-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #e94560, #d63850);
+    color: white;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #536878, #455a64);
+    color: white;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #4caf50, #45a049);
+    color: white;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-content h2 {
+    color: #e94560;
+    margin-bottom: 20px;
+    font-size: 2rem;
+}
+
+.modal-content p {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.modal-controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.level-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.level-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.level-item:hover {
+    background: rgba(233, 69, 96, 0.2);
+    border-color: #e94560;
+    transform: scale(1.05);
+}
+
+.level-item .level-num {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #e94560;
+}
+
+.level-item .level-info {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-top: 5px;
+}
+
+@media (max-width: 768px) {
+    .game-main {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .game-side {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .base-platform {
+        width: 300px;
+    }
+
+    .block {
+        width: 60px;
+        height: 24px;
+        font-size: 11px;
+    }
+
+    .game-header h1 {
+        font-size: 2rem;
+    }
+
+    .level-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.hidden {
+    display: none !important;
+}

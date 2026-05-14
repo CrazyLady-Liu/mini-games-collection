@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>闲趣描边</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="mode-selector" id="modeSelector">
+        <h1>闲趣描边</h1>
+        <p class="mode-subtitle">选择你的游戏模式</p>
+        <div class="mode-buttons">
+            <button class="mode-btn mode-normal" id="btnNormalMode">
+                <span class="mode-icon">🎮</span>
+                <span class="mode-title">普通模式</span>
+                <span class="mode-desc">不限时间，轻松描边</span>
+            </button>
+            <button class="mode-btn mode-timed" id="btnTimedMode">
+                <span class="mode-icon">⏱️</span>
+                <span class="mode-title">限时挑战</span>
+                <span class="mode-desc">限时完成，追求星级</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="game-container" id="gameContainer" style="display: none;">
+        <div class="top-bar">
+            <div class="level-info">
+                <span class="level-label">关卡</span>
+                <span class="level-number" id="levelNumber">1</span>
+            </div>
+            <div class="progress-info">
+                <span class="progress-label" id="progressLabel">描边进度</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <span class="progress-percent" id="progressPercent">0%</span>
+            </div>
+            <div class="timer-display" id="timerDisplay" style="display: none;">
+                <span class="timer-icon">⏱️</span>
+                <span class="timer-label" id="timerLabel">60</span>
+            </div>
+            <div class="tolerance-hint" id="toleranceHint">
+                <span class="hint-icon">💡</span>
+                <span class="hint-text">小幅偏移可接受</span>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="outlineCanvas" class="outline-canvas"></canvas>
+            <canvas id="drawCanvas" class="draw-canvas"></canvas>
+        </div>
+
+        <div class="button-bar">
+            <button class="btn btn-help" id="btnHelp">
+                <span class="btn-icon">❓</span>
+                <span class="btn-text">如何玩</span>
+            </button>
+            <button class="btn btn-pause" id="btnPause">
+                <span class="btn-icon">⏸️</span>
+                <span class="btn-text">暂停</span>
+            </button>
+            <button class="btn btn-clear" id="btnClear">
+                <span class="btn-icon">🧹</span>
+                <span class="btn-text">清除线条</span>
+            </button>
+            <button class="btn btn-restart" id="btnRestart">
+                <span class="btn-icon">🔄</span>
+                <span class="btn-text">重新开始</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="modal" id="helpModal">
+        <div class="modal-content">
+            <h2>如何玩</h2>
+            <ul>
+                <li>长按屏幕，沿着图形轮廓滑动来描边</li>
+                <li>不需要一笔到底，可以分段绘制</li>
+                <li>小幅偏离是允许的，不用太精准</li>
+                <li>完成闭合的一圈描边即可通关</li>
+            </ul>
+            <button class="btn btn-close" id="btnCloseHelp">知道了</button>
+        </div>
+    </div>
+
+    <div class="modal" id="pauseModal">
+        <div class="modal-content">
+            <h2>游戏暂停</h2>
+            <p>休息一下，继续加油！</p>
+            <button class="btn btn-resume" id="btnResume">继续游戏</button>
+        </div>
+    </div>
+
+    <div class="modal" id="winModal">
+        <div class="modal-content">
+            <h2>🎉 通关成功！</h2>
+            <p>描边完成度: <span id="finalProgress">100%</span></p>
+            <div class="star-rating" id="starRating" style="display: none;">
+                <span class="star">⭐</span>
+                <span class="star">⭐</span>
+                <span class="star">⭐</span>
+            </div>
+            <p class="completion-time" id="completionTime" style="display: none;">
+                用时: <span id="timeTaken">0</span>秒
+            </p>
+            <button class="btn btn-next" id="btnNext">下一关</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

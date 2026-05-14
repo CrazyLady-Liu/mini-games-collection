@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重心守护</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>重心守护</h1>
+            <div class="game-info">
+                <div class="info-item">
+                    <span class="label">关卡:</span>
+                    <span id="level-display">1</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">剩余拆除:</span>
+                    <span id="remaining-display">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-main">
+            <div class="game-area">
+                <div class="tower-container">
+                    <div class="base-platform"></div>
+                    <div id="tower"></div>
+                </div>
+            </div>
+
+            <div class="game-side">
+                <div class="game-rules">
+                    <h3>游戏规则</h3>
+                    <ul>
+                        <li>点击上层积木使其掉落</li>
+                        <li>只能点击可拆除的积木（高亮显示）</li>
+                        <li>底层承重积木不可点击</li>
+                        <li>保证塔身不倒塌</li>
+                        <li>拆除指定数量积木即可通关</li>
+                    </ul>
+                </div>
+
+                <div class="game-controls">
+                    <button id="restart-btn" class="btn btn-primary">重新开始</button>
+                    <button id="level-select-btn" class="btn btn-secondary">选择关卡</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="level-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>选择关卡</h2>
+                <div id="level-list" class="level-list"></div>
+                <button id="close-modal-btn" class="btn btn-secondary">关闭</button>
+            </div>
+        </div>
+
+        <div id="game-over-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2 id="game-over-title">游戏结束</h2>
+                <p id="game-over-message"></p>
+                <div class="modal-controls">
+                    <button id="retry-btn" class="btn btn-primary">重试</button>
+                    <button id="next-level-btn" class="btn btn-success hidden">下一关</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

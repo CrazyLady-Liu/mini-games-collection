@@ -401,19 +401,24 @@ class ForkEscapeGame {
         
         const pathStop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
         pathStop1.setAttribute('offset', '0%');
-        pathStop1.setAttribute('stop-color', '#d4c5ff');
+        pathStop1.setAttribute('stop-color', '#e8e0f5');
         
         const pathStop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        pathStop2.setAttribute('offset', '50%');
-        pathStop2.setAttribute('stop-color', '#c5b5f0');
+        pathStop2.setAttribute('offset', '30%');
+        pathStop2.setAttribute('stop-color', '#ddd5ed');
         
         const pathStop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        pathStop3.setAttribute('offset', '100%');
-        pathStop3.setAttribute('stop-color', '#d4c5ff');
+        pathStop3.setAttribute('offset', '70%');
+        pathStop3.setAttribute('stop-color', '#d5cce8');
+        
+        const pathStop4 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        pathStop4.setAttribute('offset', '100%');
+        pathStop4.setAttribute('stop-color', '#e8e0f5');
         
         pathGradient.appendChild(pathStop1);
         pathGradient.appendChild(pathStop2);
         pathGradient.appendChild(pathStop3);
+        pathGradient.appendChild(pathStop4);
         defs.appendChild(pathGradient);
         
         const nodeGradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
@@ -424,15 +429,15 @@ class ForkEscapeGame {
         
         const nodeStop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
         nodeStop1.setAttribute('offset', '0%');
-        nodeStop1.setAttribute('stop-color', '#e8dfff');
+        nodeStop1.setAttribute('stop-color', 'rgba(230, 225, 240, 0.35)');
         
         const nodeStop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        nodeStop2.setAttribute('offset', '50%');
-        nodeStop2.setAttribute('stop-color', '#c5b5f0');
+        nodeStop2.setAttribute('offset', '40%');
+        nodeStop2.setAttribute('stop-color', 'rgba(210, 205, 220, 0.25)');
         
         const nodeStop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
         nodeStop3.setAttribute('offset', '100%');
-        nodeStop3.setAttribute('stop-color', '#a898e0');
+        nodeStop3.setAttribute('stop-color', 'rgba(200, 195, 210, 0.08)');
         
         nodeGradient.appendChild(nodeStop1);
         nodeGradient.appendChild(nodeStop2);
@@ -491,15 +496,17 @@ class ForkEscapeGame {
     }
     
     renderPathNodes(path) {
+        const totalSegments = path.segments.filter(s => !s.isDeadEnd).length;
+        
         for (let i = 0; i < path.segments.length; i++) {
             const segment = path.segments[i];
             if (segment.isDeadEnd) continue;
             
-            if (i > 0) {
+            if (i > 0 && (i === Math.floor(totalSegments / 2) || i === totalSegments - 1)) {
                 this.renderNode(segment.start.x, segment.start.y);
             }
             
-            if (i === path.segments.length - 1) {
+            if (i === path.segments.length - 1 && totalSegments > 3) {
                 this.renderNode(segment.end.x, segment.end.y);
             }
         }
@@ -509,7 +516,7 @@ class ForkEscapeGame {
         const node = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         node.setAttribute('cx', x);
         node.setAttribute('cy', y);
-        node.setAttribute('r', 6);
+        node.setAttribute('r', 4);
         node.setAttribute('class', 'path-node');
         
         this.mazeSvg.appendChild(node);

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光点逐拍</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="background-glow" class="background-glow"></div>
+    <div id="app" class="app">
+        <div id="start-screen" class="screen active">
+            <div class="start-container">
+                <div class="title-wrapper">
+                    <h1 class="game-title">光点逐拍</h1>
+                    <p class="game-subtitle">跟随节奏，点亮每一个瞬间</p>
+                </div>
+                
+                <div class="skin-selector-card">
+                    <h3 class="section-title">选择你的风格</h3>
+                    <div class="skin-options">
+                        <button class="skin-btn active" data-skin="soft">
+                            <div class="skin-preview soft-preview"></div>
+                            <span class="skin-name">柔光简约</span>
+                        </button>
+                        <button class="skin-btn" data-skin="star">
+                            <div class="skin-preview star-preview"></div>
+                            <span class="skin-name">星光粒子</span>
+                        </button>
+                        <button class="skin-btn" data-skin="bubble">
+                            <div class="skin-preview bubble-preview"></div>
+                            <span class="skin-name">治愈气泡</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <button id="start-btn" class="btn-primary">
+                    <span>开始体验</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div class="game-layout">
+                <div class="top-bar">
+                    <div class="ui-card">
+                        <div class="ui-item">
+                            <span class="ui-label">关卡</span>
+                            <span id="level-display" class="ui-value">1</span>
+                        </div>
+                        <div class="ui-divider"></div>
+                        <div class="ui-item">
+                            <span class="ui-label">连击</span>
+                            <span id="combo-display-ui" class="ui-value">0</span>
+                        </div>
+                        <div class="ui-divider"></div>
+                        <div class="ui-item">
+                            <span class="ui-label">进度</span>
+                            <span id="progress-display" class="ui-value">0/8</span>
+                        </div>
+                        <div class="ui-divider"></div>
+                        <div class="ui-item">
+                            <span class="ui-label">星级</span>
+                            <span id="stars-display" class="ui-value">☆☆☆</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button id="pause-btn" class="btn-control" title="暂停">
+                            <span class="btn-icon">⏸</span>
+                            <span>暂停</span>
+                        </button>
+                        <button id="restart-btn-game" class="btn-control" title="重新开始">
+                            <span class="btn-icon">↻</span>
+                            <span>重来</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="game-center">
+                    <div id="beat-circle" class="beat-circle skin-soft">
+                        <div class="circle-inner"></div>
+                        <div class="circle-outer-glow"></div>
+                        <div id="particles-container" class="particles-container"></div>
+                    </div>
+                    <p class="hint-text">在圆点亮起时点击</p>
+                </div>
+
+                <div class="bottom-placeholder"></div>
+            </div>
+        </div>
+
+        <div id="pause-screen" class="screen overlay-screen">
+            <div class="pause-container">
+                <h2 class="pause-title">游戏暂停</h2>
+                <div class="pause-buttons">
+                    <button id="resume-btn" class="btn-primary">
+                        <span>继续游戏</span>
+                    </button>
+                    <button id="pause-restart-btn" class="btn-secondary">
+                        <span>重新开始</span>
+                    </button>
+                    <button id="pause-home-btn" class="btn-secondary">
+                        <span>返回主页</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="result-screen" class="screen">
+            <div class="result-container">
+                <div class="result-header">
+                    <h2 class="result-title">通关成功</h2>
+                    <p class="result-subtitle">你做得很棒！</p>
+                </div>
+                
+                <div class="rating-section">
+                    <div class="stars-display">
+                        <span id="result-star-1" class="result-star">★</span>
+                        <span id="result-star-2" class="result-star">★</span>
+                        <span id="result-star-3" class="result-star">★</span>
+                    </div>
+                    <p id="rating-message" class="rating-text">完美！</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span id="stat-max-combo" class="stat-number">0</span>
+                        <span class="stat-label">最高连击</span>
+                    </div>
+                    <div class="stat-card">
+                        <span id="stat-success-hits" class="stat-number">0</span>
+                        <span class="stat-label">成功点击</span>
+                    </div>
+                    <div class="stat-card">
+                        <span id="stat-accuracy" class="stat-number">0%</span>
+                        <span class="stat-label">准确率</span>
+                    </div>
+                </div>
+
+                <div class="result-actions">
+                    <button id="play-again-btn" class="btn-primary">
+                        <span>再玩一次</span>
+                    </button>
+                    <button id="back-home-btn" class="btn-secondary">
+                        <span>返回主页</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
