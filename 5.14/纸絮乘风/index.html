@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>纸絮乘风</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(180deg, #e0f0ff 0%, #f5f9ff 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow: hidden;
+  }
+  .game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  h1 {
+    color: #4a6fa5;
+    font-size: 26px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+  }
+  .top-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 600px;
+  }
+  .info-bar {
+    display: flex;
+    gap: 12px;
+    font-size: 14px;
+    color: #333;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .info-bar span {
+    background: rgba(255,255,255,0.85);
+    padding: 6px 14px;
+    border-radius: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .info-bar b {
+    color: #4a6fa5;
+    font-weight: 600;
+  }
+  .hint-bar {
+    display: flex;
+    gap: 12px;
+    font-size: 13px;
+    color: #555;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .hint-bar span {
+    background: rgba(255,255,255,0.7);
+    padding: 5px 12px;
+    border-radius: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .shape-hint {
+    color: #e67e22 !important;
+    font-weight: 500;
+  }
+  .gust-warning {
+    color: #e74c3c !important;
+    font-weight: 600;
+    animation: pulse 0.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  #gameCanvas {
+    background: linear-gradient(180deg, #c9e4ff 0%, #e8f4ff 60%, #fff5e6 100%);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    cursor: default;
+  }
+  .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 600px;
+  }
+  .wind-control {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+  }
+  .wind-label {
+    color: #555;
+    font-size: 14px;
+    min-width: 70px;
+  }
+  .wind-icon {
+    font-size: 22px;
+  }
+  #windSlider {
+    flex: 1;
+    height: 12px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(90deg, #6bb3ff, #ffffff, #ff9966);
+    border-radius: 6px;
+    outline: none;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+  }
+  #windSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 26px;
+    height: 26px;
+    background: radial-gradient(circle, #fff 0%, #ddd 100%);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+    border: 3px solid #4a90e2;
+    transition: transform 0.1s;
+  }
+  #windSlider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+  }
+  .btn-group {
+    display: flex;
+    gap: 12px;
+  }
+  button {
+    padding: 9px 22px;
+    font-size: 14px;
+    border: none;
+    border-radius: 22px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+    font-weight: 500;
+  }
+  #startBtn {
+    background: linear-gradient(135deg, #5cb85c, #4cae4c);
+    color: white;
+  }
+  #startBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px rgba(92,184,92,0.35);
+  }
+  #restartBtn {
+    background: linear-gradient(135deg, #f0ad4e, #ec971f);
+    color: white;
+  }
+  #restartBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px rgba(240,173,78,0.35);
+  }
+  #nextBtn {
+    background: linear-gradient(135deg, #337ab7, #286090);
+    color: white;
+  }
+  #nextBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px rgba(51,122,183,0.35);
+  }
+  #hintBtn {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: white;
+  }
+  #hintBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px rgba(155,89,182,0.35);
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal.hidden {
+    display: none;
+  }
+  .modal-content {
+    background: white;
+    padding: 35px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+    max-width: 380px;
+    animation: modalIn 0.3s ease;
+  }
+  @keyframes modalIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal-content h2 {
+    color: #4a6fa5;
+    margin-bottom: 12px;
+    font-size: 24px;
+  }
+  .modal-content p {
+    color: #666;
+    margin-bottom: 22px;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .stars {
+    font-size: 36px;
+    margin-bottom: 15px;
+  }
+</style>
+</head>
+<body>
+<div class="game-container">
+  <h1>🍃 纸絮乘风 🍃</h1>
+  <div class="top-info">
+    <div class="info-bar">
+      <span>关卡: <b id="levelText">1</b> / 7</span>
+      <span>纸片: <b id="paperCount">0</b> / <b id="paperTotal">1</b></span>
+      <span>已落地: <b id="landedCount">0</b></span>
+      <span id="shapeInfo">形态: <b id="shapeText">标准</b></span>
+      <span id="gustInfo" class="hidden">阵风: <b id="gustText">--</b>s</span>
+    </div>
+    <div class="hint-bar">
+      <span id="shapeHint" class="shape-hint">💡 目标：绿色标记平台</span>
+    </div>
+  </div>
+  <canvas id="gameCanvas" width="600" height="500"></canvas>
+  <div class="controls">
+    <div class="wind-control">
+      <span class="wind-icon">⬅️</span>
+      <span class="wind-label" id="windLabel">风力: 0</span>
+      <span class="wind-icon">➡️</span>
+    </div>
+    <input type="range" id="windSlider" min="-100" max="100" value="0" step="1">
+    <div class="btn-group">
+      <button id="startBtn">开始</button>
+      <button id="restartBtn" disabled>重新开始</button>
+      <button id="hintBtn">提示</button>
+      <button id="nextBtn" disabled>下一关</button>
+    </div>
+  </div>
+</div>
+
+<div id="winModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="stars">🎉</div>
+    <h2>关卡通过！</h2>
+    <p id="winMessage">太棒了！纸片成功落在平台上！</p>
+    <button id="modalNextBtn" style="background: linear-gradient(135deg, #5cb85c, #4cae4c); color: white;">继续</button>
+  </div>
+</div>
+
+<div id="loseModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="stars">😢</div>
+    <h2>挑战失败</h2>
+    <p id="loseMessage">纸片飘走了，再试一次吧！</p>
+    <button id="modalRetryBtn" style="background: linear-gradient(135deg, #f0ad4e, #ec971f); color: white;">重试</button>
+  </div>
+</div>
+
+<div id="completeModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="stars">🏆</div>
+    <h2>全部通关！</h2>
+    <p>恭喜你完成了所有关卡！<br>你是真正的御风大师！</p>
+    <button id="modalRestartBtn" style="background: linear-gradient(135deg, #337ab7, #286090); color: white;">重新开始</button>
+  </div>
+</div>
+
+<div id="hintModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="stars">💡</div>
+    <h2>游戏提示</h2>
+    <p id="hintMessage">调整风力滑块，引导纸片飘向绿色标记的目标平台。注意躲避障碍物和阵风！</p>
+    <button id="modalCloseHintBtn" style="background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white;">知道了</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const windSlider = document.getElementById('windSlider');
+const windLabel = document.getElementById('windLabel');
+const startBtn = document.getElementById('startBtn');
+const restartBtn = document.getElementById('restartBtn');
+const nextBtn = document.getElementById('nextBtn');
+const hintBtn = document.getElementById('hintBtn');
+const levelText = document.getElementById('levelText');
+const paperCountText = document.getElementById('paperCount');
+const paperTotalText = document.getElementById('paperTotal');
+const landedCountText = document.getElementById('landedCount');
+const shapeText = document.getElementById('shapeText');
+const shapeHint = document.getElementById('shapeHint');
+const gustInfo = document.getElementById('gustInfo');
+const gustText = document.getElementById('gustText');
+const winModal = document.getElementById('winModal');
+const loseModal = document.getElementById('loseModal');
+const completeModal = document.getElementById('completeModal');
+const hintModal = document.getElementById('hintModal');
+const winMessage = document.getElementById('winMessage');
+const loseMessage = document.getElementById('loseMessage');
+const hintMessage = document.getElementById('hintMessage');
+
+const paperShapes = {
+  standard: { name: '标准', width: 30, height: 30, drag: 1.0, desc: '普通纸片，均衡特性' },
+  wide: { name: '宽翼', width: 45, height: 22, drag: 1.3, desc: '受风面积大，对风力更敏感' },
+  narrow: { name: '窄条', width: 20, height: 40, drag: 0.7, desc: '风阻小，下落速度较快' },
+  light: { name: '轻盈', width: 28, height: 28, drag: 1.2, desc: '更轻，易受湍流影响' }
+};
+
+const levels = [
+  {
+    paperCount: 1, paperShape: 'standard',
+    platforms: [{ x: 300, y: 420, width: 180, isTarget: true }],
+    obstacles: [], windTurbulence: 0, spawnDelay: 0,
+    gusts: [], hint: '调整风力，让纸片落在绿色平台上'
+  },
+  {
+    paperCount: 1, paperShape: 'standard',
+    platforms: [{ x: 300, y: 420, width: 160, isTarget: true }],
+    obstacles: [], windTurbulence: 0, spawnDelay: 0,
+    gusts: [], hint: '平台变窄了，需要更精准的控制'
+  },
+  {
+    paperCount: 1, paperShape: 'wide',
+    platforms: [{ x: 300, y: 420, width: 140, isTarget: true }],
+    obstacles: [], windTurbulence: 0.1, spawnDelay: 0,
+    gusts: [], hint: '宽翼纸片：受风面积大，风力影响更明显'
+  },
+  {
+    paperCount: 1, paperShape: 'narrow',
+    platforms: [
+      { x: 180, y: 420, width: 100, isTarget: false },
+      { x: 420, y: 420, width: 100, isTarget: true }
+    ],
+    obstacles: [
+      { x: 300, y: 280, width: 100, height: 20, type: 'board', move: null }
+    ], windTurbulence: 0.15, spawnDelay: 0,
+    gusts: [], hint: '首次出现障碍物！调整风向绕开中间隔板'
+  },
+  {
+    paperCount: 1, paperShape: 'standard',
+    platforms: [{ x: 300, y: 420, width: 80, isTarget: true }],
+    obstacles: [
+      { x: 200, y: 220, width: 90, height: 20, type: 'board', move: null },
+      { x: 400, y: 300, width: 90, height: 20, type: 'board', move: null }
+    ], windTurbulence: 0.2, spawnDelay: 0,
+    gusts: [], hint: '双障碍物！规划好路线，从空隙穿过'
+  },
+  {
+    paperCount: 1, paperShape: 'light',
+    platforms: [{ x: 300, y: 420, width: 70, isTarget: true }],
+    obstacles: [
+      { x: 300, y: 200, width: 140, height: 18, type: 'board', move: { type: 'horizontal', speed: 0.8, range: 80 } }
+    ], windTurbulence: 0.25, spawnDelay: 0,
+    gusts: [{ time: 4000, duration: 1500, force: 45 }],
+    hint: '移动障碍物！观察节奏，等待时机通过'
+  },
+  {
+    paperCount: 3, paperShape: 'standard',
+    platforms: [{ x: 300, y: 420, width: 120, isTarget: true }],
+    obstacles: [
+      { x: 200, y: 180, width: 70, height: 18, type: 'board', move: { type: 'vertical', speed: 0.6, range: 60 } },
+      { x: 400, y: 280, width: 70, height: 18, type: 'board', move: { type: 'vertical', speed: 0.7, range: 70 } }
+    ], windTurbulence: 0.3, spawnDelay: 900,
+    gusts: [{ time: 3500, duration: 1200, force: 50 },
+            { time: 7500, duration: 1200, force: -45 }],
+    hint: '双移动障碍物+双阵风！观察规律，精准控风'
+  }
+];
+
+let currentLevel = 0;
+let papers = [];
+let platforms = [];
+let obstacles = [];
+let wind = 0;
+let turbulence = 0;
+let gameState = 'ready';
+let landedCount = 0;
+let spawnedCount = 0;
+let animationId = null;
+let lastSpawnTime = 0;
+let gameStartTime = 0;
+let activeGusts = [];
+let currentGustForce = 0;
+let showHint = false;
+let hintTimer = 0;
+
+class Paper {
+  constructor(x, y, shapeType) {
+    this.x = x;
+    this.y = y;
+    this.vx = 0;
+    this.vy = 0;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotationSpeed = (Math.random() - 0.5) * 0.05;
+    this.shapeType = shapeType;
+    const shape = paperShapes[shapeType];
+    this.width = shape.width;
+    this.height = shape.height;
+    this.drag = shape.drag;
+    this.landed = false;
+    this.failed = false;
+    this.hitCooldown = 0;
+    this.bounceEffect = 0;
+    this.color = this.getRandomColor();
+    this.turbulenceOffset = Math.random() * 1000;
+  }
+  
+  getRandomColor() {
+    const colors = ['#ffffff', '#fff5e6', '#ffe6e6', '#e6f2ff', '#f0e6ff', '#e6ffe6'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+  
+  update(windForce, gustForce, turbulence, dt) {
+    if (this.landed || this.failed) return;
+    
+    if (this.hitCooldown > 0) {
+      this.hitCooldown -= dt;
+    }
+    if (this.bounceEffect > 0) {
+      this.bounceEffect -= dt * 0.05;
+    }
+    
+    const time = Date.now() * 0.001 + this.turbulenceOffset;
+    const turbX = Math.sin(time * 2) * turbulence * 0.5;
+    const turbY = Math.cos(time * 1.5) * turbulence * 0.3;
+    
+    const totalWind = (windForce + gustForce) * 0.008;
+    const windMultiplier = this.bounceEffect > 0 ? (1 - this.bounceEffect * 0.3) : 1;
+    this.vx += (totalWind * this.drag * windMultiplier + turbX) * dt;
+    this.vy += (0.15 + turbY) * dt;
+    
+    this.vx *= 0.99;
+    this.vy *= 0.99;
+    
+    this.rotationSpeed += (Math.random() - 0.5) * 0.002 * this.drag;
+    this.rotationSpeed *= 0.98;
+    this.rotation += this.rotationSpeed * dt;
+    
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    
+    if (this.x < -50 || this.x > canvas.width + 50 || this.y > canvas.height + 50) {
+      this.failed = true;
+    }
+  }
+  
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    
+    ctx.fillStyle = this.color;
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 1;
+    
+    const w = this.width / 2;
+    const h = this.height / 2;
+    
+    ctx.beginPath();
+    ctx.moveTo(-w, -h);
+    ctx.lineTo(w, -h + 3);
+    ctx.lineTo(w - 2, h);
+    ctx.lineTo(-w + 2, h - 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.strokeStyle = 'rgba(150,150,150,0.3)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(-w * 0.5, -h * 0.6);
+    ctx.lineTo(w * 0.5, h * 0.6);
+    ctx.moveTo(w * 0.5, -h * 0.6);
+    ctx.lineTo(-w * 0.5, h * 0.6);
+    ctx.stroke();
+    
+    ctx.restore();
+    
+    if (this.bounceEffect > 0.3) {
+      ctx.fillStyle = `rgba(255, 193, 7, ${this.bounceEffect * 0.6})`;
+      ctx.font = '18px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('✨', this.x, this.y - this.height / 2 - 10);
+    }
+  }
+  
+  checkLanding(platforms) {
+    if (this.landed || this.failed) return false;
+    
+    for (const platform of platforms) {
+      if (!platform.isTarget) continue;
+      
+      const platLeft = platform.x - platform.width / 2;
+      const platRight = platform.x + platform.width / 2;
+      const platTop = platform.y - platform.height / 2;
+      
+      const tolerance = 15;
+      const paperBottom = this.y + this.height / 2;
+      
+      if (paperBottom >= platTop - tolerance && paperBottom <= platTop + platform.height + 10) {
+        if (this.x >= platLeft - tolerance && this.x <= platRight + tolerance) {
+          if (this.vy > 0) {
+            this.landed = true;
+            this.vx = 0;
+            this.vy = 0;
+            this.y = platTop - this.height / 2;
+            this.landedPlatform = platform;
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+  
+  checkObstacles(obstacles) {
+    if (this.landed || this.failed || this.hitCooldown > 0) return false;
+    
+    for (const obs of obstacles) {
+      const left = obs.x - obs.width / 2;
+      const right = obs.x + obs.width / 2;
+      const top = obs.y - obs.height / 2;
+      const bottom = obs.y + obs.height / 2;
+      
+      const paperLeft = this.x - this.width / 2;
+      const paperRight = this.x + this.width / 2;
+      const paperTop = this.y - this.height / 2;
+      const paperBottom = this.y + this.height / 2;
+      
+      const overlapLeft = paperRight - left;
+      const overlapRight = right - paperLeft;
+      const overlapTop = paperBottom - top;
+      const overlapBottom = bottom - paperTop;
+      
+      if (paperRight > left && paperLeft < right &&
+          paperBottom > top && paperTop < bottom) {
+        
+        const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+        const isGrazing = minOverlap < 8;
+        
+        if (isGrazing) {
+          const pushForce = 1.5;
+          if (minOverlap === overlapLeft) {
+            this.x -= pushForce;
+            this.vx = Math.abs(this.vx) * 0.3;
+          } else if (minOverlap === overlapRight) {
+            this.x += pushForce;
+            this.vx = -Math.abs(this.vx) * 0.3;
+          } else if (minOverlap === overlapTop) {
+            this.y -= pushForce;
+            this.vy = Math.abs(this.vy) * 0.3;
+          } else {
+            this.y += pushForce;
+            this.vy = -Math.abs(this.vy) * 0.3;
+          }
+          this.rotationSpeed += (Math.random() - 0.5) * 0.1;
+          this.hitCooldown = 10;
+          this.bounceEffect = 1;
+          obs.triggerHit();
+          return true;
+        } else {
+          const bounceMultiplier = 0.6;
+          if (minOverlap === overlapLeft) {
+            this.vx = -Math.abs(this.vx) * bounceMultiplier;
+            this.x = left - this.width / 2 - 1;
+          } else if (minOverlap === overlapRight) {
+            this.vx = Math.abs(this.vx) * bounceMultiplier;
+            this.x = right + this.width / 2 + 1;
+          } else if (minOverlap === overlapTop) {
+            this.vy = -Math.abs(this.vy) * bounceMultiplier;
+            this.y = top - this.height / 2 - 1;
+          } else {
+            this.vy = Math.abs(this.vy) * bounceMultiplier;
+            this.y = bottom + this.height / 2 + 1;
+          }
+          this.rotationSpeed += (Math.random() - 0.5) * 0.15;
+          this.hitCooldown = 15;
+          this.bounceEffect = 1;
+          obs.triggerHit();
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+}
+
+class Platform {
+  constructor(x, y, width, isTarget = false) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = 18;
+    this.isTarget = isTarget;
+  }
+  
+  draw() {
+    const gradient = ctx.createLinearGradient(this.x - this.width/2, this.y, this.x - this.width/2, this.y + this.height);
+    
+    if (this.isTarget) {
+      gradient.addColorStop(0, '#66BB6A');
+      gradient.addColorStop(1, '#43A047');
+    } else {
+      gradient.addColorStop(0, '#8B7355');
+      gradient.addColorStop(1, '#6B5344');
+    }
+    
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.roundRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height, 4);
+    ctx.fill();
+    
+    if (this.isTarget) {
+      ctx.strokeStyle = 'rgba(76, 175, 80, 0.6)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([5, 3]);
+      ctx.strokeRect(this.x - this.width/2 - 3, this.y - this.height/2 - 3, this.width + 6, this.height + 6);
+      ctx.setLineDash([]);
+      
+      const pulse = (Math.sin(Date.now() * 0.005) + 1) / 2;
+      ctx.fillStyle = `rgba(76, 175, 80, ${0.2 + pulse * 0.2})`;
+      ctx.beginPath();
+      ctx.roundRect(this.x - this.width/2 - 8, this.y - this.height/2 - 8, this.width + 16, this.height + 16, 6);
+      ctx.fill();
+    }
+    
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fillRect(this.x - this.width/2 + 4, this.y + this.height/2 - 2, this.width - 8, 2);
+    
+    if (this.isTarget) {
+      ctx.fillStyle = '#81C784';
+    } else {
+      ctx.fillStyle = '#7CB342';
+    }
+    for (let i = 0; i < this.width; i += 10) {
+      const grassHeight = 4 + Math.random() * 6;
+      ctx.beginPath();
+      ctx.moveTo(this.x - this.width/2 + i, this.y - this.height/2);
+      ctx.lineTo(this.x - this.width/2 + i + 2.5, this.y - this.height/2 - grassHeight);
+      ctx.lineTo(this.x - this.width/2 + i + 5, this.y - this.height/2);
+      ctx.fill();
+    }
+    
+    if (this.isTarget) {
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 11px Microsoft YaHei';
+      ctx.textAlign = 'center';
+      ctx.fillText('目标', this.x, this.y + 4);
+    }
+  }
+}
+
+class Obstacle {
+  constructor(x, y, width, height, type = 'board', move = null) {
+    this.baseX = x;
+    this.baseY = y;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.type = type;
+    this.move = move;
+    this.time = Math.random() * Math.PI * 2;
+    this.hitFlash = 0;
+  }
+  
+  update(dt) {
+    if (this.move) {
+      this.time += dt * 0.03 * this.move.speed;
+      const offset = Math.sin(this.time) * this.move.range;
+      if (this.move.type === 'horizontal') {
+        this.x = this.baseX + offset;
+      } else if (this.move.type === 'vertical') {
+        this.y = this.baseY + offset;
+      }
+    }
+    if (this.hitFlash > 0) {
+      this.hitFlash -= dt;
+    }
+  }
+  
+  draw() {
+    const isMoving = this.move !== null;
+    const flashIntensity = this.hitFlash > 0 ? Math.min(this.hitFlash, 1) : 0;
+    
+    const gradient = ctx.createLinearGradient(this.x - this.width/2, this.y - this.height/2, this.x + this.width/2, this.y + this.height/2);
+    
+    if (flashIntensity > 0) {
+      gradient.addColorStop(0, `rgb(${120 + flashIntensity * 100}, ${144 - flashIntensity * 50}, ${156 - flashIntensity * 80})`);
+      gradient.addColorStop(1, `rgb(${84 + flashIntensity * 100}, ${110 - flashIntensity * 50}, ${122 - flashIntensity * 80})`);
+    } else {
+      gradient.addColorStop(0, '#78909C');
+      gradient.addColorStop(1, '#546E7A');
+    }
+    
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.roundRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height, 4);
+    ctx.fill();
+    
+    ctx.strokeStyle = isMoving ? '#FF9800' : '#455A64';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fillRect(this.x - this.width/2 + 3, this.y - this.height/2 + 2, this.width - 6, 3);
+    
+    if (isMoving) {
+      ctx.fillStyle = '#FFC107';
+      const arrowY = this.y + this.height/2 + 12;
+      ctx.font = '10px Arial';
+      ctx.textAlign = 'center';
+      if (this.move.type === 'horizontal') {
+        ctx.fillText('↔', this.x, arrowY);
+      } else {
+        ctx.fillText('↕', this.x, arrowY);
+      }
+    } else {
+      ctx.fillStyle = '#90A4AE';
+      ctx.font = '11px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('┃', this.x, this.y + 4);
+    }
+  }
+  
+  triggerHit() {
+    this.hitFlash = 8;
+  }
+}
+
+function initLevel() {
+  const level = levels[currentLevel];
+  platforms = level.platforms.map(p => new Platform(p.x, p.y, p.width, p.isTarget));
+  obstacles = level.obstacles.map(o => new Obstacle(o.x, o.y, o.width, o.height, o.type, o.move));
+  papers = [];
+  landedCount = 0;
+  spawnedCount = 0;
+  turbulence = level.windTurbulence;
+  activeGusts = JSON.parse(JSON.stringify(level.gusts));
+  currentGustForce = 0;
+  windSlider.value = 0;
+  wind = 0;
+  showHint = false;
+  hintTimer = 0;
+  
+  const shape = paperShapes[level.paperShape];
+  shapeText.textContent = shape.name;
+  shapeHint.textContent = `💡 ${level.hint}`;
+  
+  if (level.gusts.length > 0) {
+    gustInfo.classList.remove('hidden');
+  } else {
+    gustInfo.classList.add('hidden');
+  }
+  
+  updateWindLabel();
+  updateUI();
+}
+
+function spawnPaper() {
+  const level = levels[currentLevel];
+  if (spawnedCount >= level.paperCount) return;
+  
+  const x = 80 + Math.random() * (canvas.width - 160);
+  const y = 50;
+  papers.push(new Paper(x, y, level.paperShape));
+  spawnedCount++;
+  updateUI();
+}
+
+function updateUI() {
+  const level = levels[currentLevel];
+  levelText.textContent = currentLevel + 1;
+  paperCountText.textContent = spawnedCount;
+  paperTotalText.textContent = level.paperCount;
+  landedCountText.textContent = landedCount;
+}
+
+function updateWindLabel() {
+  const windVal = parseInt(windSlider.value);
+  windLabel.textContent = `风力: ${windVal > 0 ? '→' : windVal < 0 ? '←' : '○'} ${Math.abs(windVal)}`;
+}
+
+function updateGusts(elapsed) {
+  currentGustForce = 0;
+  
+  for (const gust of activeGusts) {
+    if (elapsed >= gust.time && elapsed < gust.time + gust.duration) {
+      const progress = (elapsed - gust.time) / gust.duration;
+      const factor = Math.sin(progress * Math.PI);
+      currentGustForce = gust.force * factor;
+    }
+  }
+  
+  const nextGust = activeGusts.find(g => elapsed < g.time);
+  if (nextGust) {
+    const remaining = Math.ceil((nextGust.time - elapsed) / 1000);
+    gustText.textContent = `${remaining}s`;
+    gustInfo.classList.add('gust-warning');
+  } else {
+    const activeGust = activeGusts.find(g => elapsed >= g.time && elapsed < g.time + g.duration);
+    if (activeGust) {
+      gustText.textContent = '阵风!';
+      gustInfo.classList.add('gust-warning');
+    } else {
+      gustText.textContent = '--';
+      gustInfo.classList.remove('gust-warning');
+    }
+  }
+}
+
+function drawBackground() {
+  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+  for (let i = 0; i < 5; i++) {
+    const x = (Date.now() * 0.015 + i * 150) % (canvas.width + 200) - 100;
+    const y = 50 + i * 28;
+    drawCloud(x, y, 28 + i * 4);
+  }
+  
+  if (showHint && hintTimer > 0) {
+    drawHintOverlay();
+  }
+}
+
+function drawCloud(x, y, size) {
+  ctx.beginPath();
+  ctx.arc(x, y, size * 0.6, 0, Math.PI * 2);
+  ctx.arc(x + size * 0.5, y - size * 0.2, size * 0.5, 0, Math.PI * 2);
+  ctx.arc(x + size, y, size * 0.6, 0, Math.PI * 2);
+  ctx.arc(x + size * 0.5, y + size * 0.1, size * 0.5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawHintOverlay() {
+  ctx.fillStyle = 'rgba(255, 235, 59, 0.15)';
+  for (const platform of platforms) {
+    if (platform.isTarget) {
+      ctx.fillRect(0, 0, canvas.width, platform.y - platform.height);
+      ctx.strokeStyle = 'rgba(76, 175, 80, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 4]);
+      ctx.beginPath();
+      ctx.moveTo(platform.x, 0);
+      ctx.lineTo(platform.x, platform.y - platform.height);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+  
+  ctx.fillStyle = 'rgba(244, 67, 54, 0.3)';
+  for (const obs of obstacles) {
+    ctx.fillRect(obs.x - obs.width/2 - 5, obs.y - obs.height/2 - 5, obs.width + 10, obs.height + 10);
+  }
+}
+
+let lastTime = 0;
+function gameLoop(timestamp) {
+  const dt = Math.min((timestamp - lastTime) / 16.67, 3);
+  lastTime = timestamp;
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBackground();
+  
+  const level = levels[currentLevel];
+  const elapsed = gameState === 'playing' ? timestamp - gameStartTime : 0;
+  
+  if (gameState === 'playing' && level.gusts.length > 0) {
+    updateGusts(elapsed);
+  }
+  
+  if (showHint) {
+    hintTimer -= dt;
+    if (hintTimer <= 0) {
+      showHint = false;
+    }
+  }
+  
+  if (gameState === 'playing') {
+    if (spawnedCount < level.paperCount && (timestamp - lastSpawnTime) >= level.spawnDelay) {
+      if (spawnedCount === 0 || level.spawnDelay > 0) {
+        spawnPaper();
+        lastSpawnTime = timestamp;
+      }
+    }
+  }
+  
+  for (const obs of obstacles) {
+    obs.update(dt);
+    obs.draw();
+  }
+  
+  for (const platform of platforms) {
+    platform.draw();
+  }
+  
+  for (const paper of papers) {
+    paper.update(wind, currentGustForce, turbulence, dt);
+    
+    if (paper.checkObstacles(obstacles)) {
+    }
+    
+    if (paper.checkLanding(platforms)) {
+      landedCount++;
+      updateUI();
+      checkWinLose();
+    }
+    
+    paper.draw();
+  }
+  
+  if (wind !== 0 || currentGustForce !== 0) {
+    drawWindIndicator();
+  }
+  
+  animationId = requestAnimationFrame(gameLoop);
+}
+
+function drawWindIndicator() {
+  const totalWind = wind + currentGustForce;
+  ctx.fillStyle = totalWind > 0 ? 'rgba(255,150,100,0.35)' : 'rgba(100,180,255,0.35)';
+  
+  if (currentGustForce !== 0) {
+    ctx.fillStyle = 'rgba(239, 83, 80, 0.5)';
+  }
+  
+  const arrowCount = Math.floor(Math.abs(totalWind) / 20) + 1;
+  const direction = totalWind > 0 ? 1 : -1;
+  
+  for (let i = 0; i < arrowCount; i++) {
+    const y = 100 + i * 70;
+    const xOffset = (Date.now() * 0.12 * direction + i * 45) % canvas.width;
+    const x = direction > 0 ? xOffset : canvas.width - xOffset;
+    
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - 14 * direction, y - 7);
+    ctx.lineTo(x - 14 * direction, y + 7);
+    ctx.closePath();
+    ctx.fill();
+  }
+  
+  if (currentGustForce !== 0) {
+    ctx.fillStyle = 'rgba(239, 83, 80, 0.8)';
+    ctx.font = 'bold 14px Microsoft YaHei';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌪️ 阵风', canvas.width / 2, 40);
+  }
+}
+
+function checkWinLose() {
+  const level = levels[currentLevel];
+  const allSpawned = spawnedCount >= level.paperCount;
+  const activeCount = papers.filter(p => !p.landed && !p.failed).length;
+  
+  if (landedCount >= level.paperCount) {
+    gameState = 'win';
+    showWinModal();
+  } else if (allSpawned && activeCount === 0 && landedCount < level.paperCount) {
+    gameState = 'lose';
+    showLoseModal();
+  }
+}
+
+function showWinModal() {
+  const messages = [
+    '太棒了！纸片稳稳地落在了平台上！',
+    '完美着陆！你的控风技术越来越好了！',
+    '漂亮！宽翼纸片也难不倒你！',
+    '精准！成功找到了目标平台！',
+    '厉害！成功绕过了障碍物！',
+    '精彩！在阵风干扰下完成了挑战！',
+    '不可思议！三张纸片全部成功着陆！'
+  ];
+  winMessage.textContent = messages[currentLevel];
+  
+  if (currentLevel >= levels.length - 1) {
+    completeModal.classList.remove('hidden');
+  } else {
+    winModal.classList.remove('hidden');
+  }
+  
+  nextBtn.disabled = false;
+  restartBtn.disabled = false;
+}
+
+function showLoseModal() {
+  const level = levels[currentLevel];
+  if (level.paperCount > 1) {
+    loseMessage.textContent = `只有 ${landedCount}/${level.paperCount} 张纸片成功着陆，再试一次吧！`;
+  } else {
+    loseMessage.textContent = '纸片飘出屏幕了！调整风力或绕过障碍物再试试吧！';
+  }
+  loseModal.classList.remove('hidden');
+  restartBtn.disabled = false;
+}
+
+function startGame() {
+  gameState = 'playing';
+  gameStartTime = performance.now();
+  startBtn.disabled = true;
+  restartBtn.disabled = false;
+  nextBtn.disabled = true;
+  
+  const level = levels[currentLevel];
+  if (level.spawnDelay === 0) {
+    spawnPaper();
+  }
+  lastSpawnTime = performance.now();
+}
+
+function restartLevel() {
+  initLevel();
+  gameState = 'ready';
+  startBtn.disabled = false;
+  restartBtn.disabled = true;
+  nextBtn.disabled = true;
+  winModal.classList.add('hidden');
+  loseModal.classList.add('hidden');
+  completeModal.classList.add('hidden');
+  hintModal.classList.add('hidden');
+}
+
+function nextLevel() {
+  if (currentLevel < levels.length - 1) {
+    currentLevel++;
+    restartLevel();
+  }
+}
+
+function showHintOverlayFunc() {
+  showHint = true;
+  hintTimer = 180;
+  const level = levels[currentLevel];
+  let extraHint = '绿色平台是目标，注意红色阵风预警！';
+  if (level.obstacles.length > 0) {
+    const hasMoving = level.obstacles.some(o => o.move !== null);
+    extraHint = hasMoving 
+      ? '绿色平台是目标，橙色↔↕标记的是移动障碍物，观察规律绕行！'
+      : '绿色平台是目标，灰色是静态障碍物，碰到会弹开，调整风向绕行！';
+  }
+  hintMessage.textContent = level.hint + '\n\n' + extraHint;
+  hintModal.classList.remove('hidden');
+}
+
+windSlider.addEventListener('input', () => {
+  wind = parseInt(windSlider.value);
+  updateWindLabel();
+});
+
+startBtn.addEventListener('click', startGame);
+restartBtn.addEventListener('click', restartLevel);
+nextBtn.addEventListener('click', nextLevel);
+hintBtn.addEventListener('click', showHintOverlayFunc);
+
+document.getElementById('modalNextBtn').addEventListener('click', () => {
+  winModal.classList.add('hidden');
+  nextLevel();
+});
+
+document.getElementById('modalRetryBtn').addEventListener('click', () => {
+  loseModal.classList.add('hidden');
+  restartLevel();
+});
+
+document.getElementById('modalRestartBtn').addEventListener('click', () => {
+  completeModal.classList.add('hidden');
+  currentLevel = 0;
+  restartLevel();
+});
+
+document.getElementById('modalCloseHintBtn').addEventListener('click', () => {
+  hintModal.classList.add('hidden');
+});
+
+initLevel();
+animationId = requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

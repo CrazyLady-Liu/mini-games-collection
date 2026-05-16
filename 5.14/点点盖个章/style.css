@@ -5,29 +5,45 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
+    font-family: 'Microsoft YaHei', Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #333;
+    min-height: 100vh;
+    padding: 20px;
 }
 
 .game-container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
 
 h1 {
     text-align: center;
     color: #4CAF50;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
+    font-size: 32px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.level-info {
+    text-align: center;
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 25px;
+    padding: 10px;
+    background: linear-gradient(90deg, #ffecd2 0%, #fcb69f 100%);
+    border-radius: 10px;
+    font-weight: bold;
 }
 
 h2 {
     margin-bottom: 15px;
     color: #555;
+    font-size: 18px;
 }
 
 /* 目标图案区域 */
@@ -37,12 +53,14 @@ h2 {
 
 .target-container {
     width: 100%;
-    height: 200px;
-    border: 2px dashed #ccc;
-    border-radius: 10px;
-    margin-bottom: 10px;
+    min-height: 250px;
+    border: 3px dashed #ccc;
+    border-radius: 15px;
+    margin-bottom: 15px;
     position: relative;
-    background-color: #f9f9f9;
+    background-color: #fafafa;
+    overflow: visible;
+    padding: 10px;
 }
 
 .target-pattern {
@@ -54,22 +72,163 @@ h2 {
 
 .target-pattern.visible {
     display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+.target-pattern .stamp-impression {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    opacity: 1;
+    pointer-events: none;
+}
+
+.target-pattern .stamp-impression svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.reference-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
 }
 
 .toggle-reference {
-    display: block;
-    margin: 0 auto;
-    padding: 8px 16px;
-    background-color: #4CAF50;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 25px;
     cursor: pointer;
     font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .toggle-reference:hover {
-    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.toggle-reference:active {
+    transform: translateY(0);
+}
+
+.shortcut-hint {
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+    margin-top: 10px;
+    padding: 8px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+}
+
+/* 印章自定义控制 */
+.stamp-controls {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.control-group {
+    margin-bottom: 15px;
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+}
+
+.control-group label {
+    display: block;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.control-group label span {
+    color: #667eea;
+    font-weight: bold;
+}
+
+.slider {
+    width: 100%;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 4px;
+    outline: none;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+}
+
+.slider:hover {
+    opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.control-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.mini-btn {
+    width: 50px;
+    height: 30px;
+    background: white;
+    border: 2px solid #667eea;
+    border-radius: 15px;
+    color: #667eea;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.mini-btn:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-1px);
 }
 
 /* 印章选择区域 */
@@ -80,13 +239,14 @@ h2 {
 .stamp-container {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .stamp {
-    width: 80px;
-    height: 80px;
-    border: 2px solid #ccc;
+    width: 70px;
+    height: 70px;
+    border: 3px solid #e0e0e0;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -94,21 +254,25 @@ h2 {
     cursor: pointer;
     transition: all 0.3s ease;
     background-color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    position: relative;
 }
 
 .stamp:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    transform: scale(1.1) translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
 .stamp.selected {
     border-color: #4CAF50;
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+    transform: scale(1.05);
 }
 
 .stamp svg {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
 /* 画布区域 */
@@ -118,12 +282,35 @@ h2 {
 
 .canvas {
     width: 100%;
-    height: 400px;
-    border: 2px solid #ccc;
-    border-radius: 10px;
+    height: 450px;
+    border: 3px solid #e0e0e0;
+    border-radius: 15px;
     position: relative;
-    background-color: white;
+    background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
     cursor: crosshair;
+    overflow: hidden;
+    transition: all 0.5s ease;
+}
+
+.canvas.level-complete {
+    box-shadow: 0 0 40px rgba(76, 175, 80, 0.6),
+                0 0 80px rgba(76, 175, 80, 0.3);
+    border-color: #4CAF50;
+    animation: glowPulse 1s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 40px rgba(76, 175, 80, 0.6), 0 0 80px rgba(76, 175, 80, 0.3); }
+    50% { box-shadow: 0 0 60px rgba(76, 175, 80, 0.8), 0 0 100px rgba(76, 175, 80, 0.5); }
+}
+
+.canvas.transitioning {
+    opacity: 0.3;
+    transform: scale(0.98);
+}
+
+.canvas.game-complete {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
 }
 
 /* 印章样式 */
@@ -133,17 +320,170 @@ h2 {
     height: 60px;
     cursor: default;
     transition: all 0.2s ease;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
 }
 
-.stamp-impression:hover {
-    transform: scale(1.1);
-    z-index: 10;
+.stamp-impression svg {
+    width: 100%;
+    height: 100%;
 }
 
 /* 按压效果 */
 .stamp-pressing {
-    transform: scale(0.95) translateY(2px);
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.8);
+    filter: drop-shadow(0 4px 8px rgba(76, 175, 80, 0.5));
+    animation: pressEffect 0.2s ease;
+}
+
+@keyframes pressEffect {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.92); }
+    100% { transform: scale(1); }
+}
+
+/* 鼠标跟随预览 */
+.stamp-preview {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.6;
+    transition: none;
+    filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.5));
+}
+
+.stamp-preview svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* 叠加参考层 */
+.reference-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.overlay-stamp {
+    opacity: 0.25;
+    filter: grayscale(60%);
+}
+
+/* Toast提示 */
+.toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 光斑动效 */
+.sparkle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: sparkleAnim 1.5s ease-out forwards;
+}
+
+@keyframes sparkleAnim {
+    0% {
+        opacity: 0;
+        transform: scale(0) rotate(0deg);
+    }
+    20% {
+        opacity: 1;
+        transform: scale(1.2) rotate(180deg);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0) rotate(360deg) translateY(-50px);
+    }
+}
+
+/* 完成文字 */
+.completion-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    font-weight: bold;
+    color: #4CAF50;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+    animation: popIn 0.5s ease-out;
+    z-index: 100;
+    pointer-events: none;
+}
+
+@keyframes popIn {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* 游戏完成文字 */
+.game-complete-text {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 36px;
+    font-weight: bold;
+    color: #ff6b6b;
+    text-align: center;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+    z-index: 100;
+    animation: popIn 0.5s ease-out;
+}
+
+/* 重新开始按钮 */
+.restart-btn {
+    position: absolute;
+    top: 65%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    z-index: 100;
+}
+
+.restart-btn:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
 /* 操作按钮 */
@@ -151,40 +491,62 @@ h2 {
     display: flex;
     justify-content: center;
     gap: 20px;
+    flex-wrap: wrap;
 }
 
 .control-btn {
-    padding: 10px 20px;
-    background-color: #4CAF50;
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 25px;
     cursor: pointer;
     font-size: 16px;
-    transition: background-color 0.3s ease;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
 }
 
 .control-btn:hover {
-    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(240, 147, 251, 0.6);
 }
 
 .control-btn:active {
-    transform: translateY(2px);
+    transform: translateY(0);
 }
 
 /* 响应式设计 */
 @media (max-width: 600px) {
     .game-container {
-        padding: 10px;
+        padding: 15px;
+    }
+    
+    h1 {
+        font-size: 24px;
+    }
+    
+    .reference-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .toggle-reference {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .shortcut-hint {
+        font-size: 10px;
     }
     
     .stamp-container {
-        flex-wrap: wrap;
+        gap: 8px;
     }
     
     .stamp {
-        width: 60px;
-        height: 60px;
+        width: 55px;
+        height: 55px;
     }
     
     .stamp svg {
@@ -193,6 +555,11 @@ h2 {
     }
     
     .canvas {
-        height: 300px;
+        height: 350px;
+    }
+    
+    .control-btn {
+        padding: 10px 20px;
+        font-size: 14px;
     }
 }

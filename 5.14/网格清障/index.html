@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网格清障</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>网格清障</h1>
+            <div class="level-info">
+                <span class="level-label">第</span>
+                <span id="currentLevel" class="level-number">1</span>
+                <span class="level-label">关</span>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-label">已清除</span>
+                <span id="clearedCount" class="status-value">0</span>
+                <span class="status-separator">/</span>
+                <span id="requiredCount" class="status-value">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">网格</span>
+                <span id="gridSize" class="status-value">0×0</span>
+            </div>
+        </div>
+
+        <div id="statusHint" class="status-hint hidden"></div>
+
+        <div class="game-wrapper">
+            <div id="gameGrid" class="game-grid"></div>
+            <canvas id="trailCanvas" class="trail-canvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <button id="resetBtn" class="btn btn-secondary">重置本关</button>
+            <button id="hintBtn" class="btn btn-primary">提示路径</button>
+        </div>
+
+        <div class="tips">
+            <p>清除石块，连通起点至终点</p>
+        </div>
+
+        <div id="levelComplete" class="level-complete hidden">
+            <div class="complete-content">
+                <h2>🎉 通关成功！</h2>
+                <p>准备进入下一关...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

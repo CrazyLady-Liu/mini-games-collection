@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>坡度稳行</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="game-title">坡度稳行</h1>
+        
+        <div class="game-info">
+            <div class="level-info">关卡: <span id="levelDisplay">1</span></div>
+            <div class="angle-info">坡度: <span id="angleDisplay">0</span>°</div>
+            <div class="stars-info">评分: <span id="starsDisplay">☆☆☆</span></div>
+        </div>
+        
+        <div class="game-wrapper">
+            <canvas id="gameCanvas" width="800" height="500"></canvas>
+            
+            <div class="overlay" id="overlay">
+                <div class="overlay-content" id="overlayContent">
+                    <h2 id="overlayTitle">准备开始</h2>
+                    <p id="overlayText">拖动滑块调节坡度，让方块平稳滚到终点</p>
+                    <div id="starsResult" class="stars-result"></div>
+                    <button id="startBtn" class="btn">开始游戏</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <div class="slider-container">
+                <span class="slider-label">-25°</span>
+                <input type="range" id="angleSlider" min="-25" max="25" value="0" step="0.5">
+                <span class="slider-label">+25°</span>
+            </div>
+            
+            <div class="options-panel">
+                <div class="option-group">
+                    <label class="option-label">轨道皮肤:</label>
+                    <div class="skin-buttons">
+                        <button class="skin-btn active" data-skin="grass">🌿 草地</button>
+                        <button class="skin-btn" data-skin="ice">❄️ 冰面</button>
+                        <button class="skin-btn" data-skin="sand">🏜️ 砂石</button>
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <label class="option-label">方块外观:</label>
+                    <div class="block-buttons">
+                        <button class="block-btn active" data-block="square" id="blockSquare">⬜ 方块</button>
+                        <button class="block-btn locked" data-block="ball" id="blockBall">⚪ 圆球</button>
+                        <button class="block-btn locked" data-block="heart" id="blockHeart">❤️ 爱心</button>
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <label class="option-label">辅助模式:</label>
+                    <div class="toggle-container">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="slowModeToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">慢放模式</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button id="resetBtn" class="btn btn-secondary">重置本关</button>
+            </div>
+        </div>
+        
+        <div class="hint">
+            <p>💡 提示：调节坡度让方块平稳滚动，避免侧翻和掉落 | 冰面摩擦力小，砂石摩擦力大 | 通关可解锁新外观</p>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一键梗库 - 表情文案生成器</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🎭 一键梗库</h1>
+            <p class="subtitle">极简表情文案生成器</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab active" data-category="love">土味情话</button>
+            <button class="tab" data-category="crazy">发疯文学</button>
+            <button class="tab" data-category="moments">朋友圈文案</button>
+            <button class="tab" data-category="emoji">表情符号</button>
+        </nav>
+
+        <div class="quick-actions">
+            <button id="emoji-toggle-btn" class="quick-btn active" title="自动添加表情">
+                <span>🎨</span>
+                <span>智能配图</span>
+            </button>
+            <button id="favorites-btn" class="quick-btn" title="查看收藏">
+                <span>⭐</span>
+                <span>我的收藏</span>
+                <span id="favorites-count" class="badge">0</span>
+            </button>
+            <button id="history-btn" class="quick-btn" title="查看历史">
+                <span>📜</span>
+                <span>历史记录</span>
+            </button>
+        </div>
+
+        <main class="card">
+            <div class="card-content">
+                <p id="quote-text">点击上方分类，获取随机文案 ✨</p>
+            </div>
+            <div class="card-footer">
+                <div class="card-footer-left">
+                    <span id="category-label">土味情话</span>
+                </div>
+                <div class="card-footer-right">
+                    <button id="favorite-btn" class="icon-btn" title="收藏文案">
+                        <span id="favorite-icon">☆</span>
+                    </button>
+                    <button id="refresh-btn" class="icon-btn" title="点击刷新最新热梗">🔄</button>
+                </div>
+            </div>
+        </main>
+
+        <button id="copy-btn" class="copy-btn">
+            <span class="copy-icon">📋</span>
+            <span class="copy-text">一键复制</span>
+        </button>
+
+        <div class="test-panel">
+            <span class="test-label">工具：</span>
+            <button id="simulate-offline-btn" class="test-btn">📴 断网</button>
+            <button id="simulate-online-btn" class="test-btn">📶 联网</button>
+            <button id="clear-cache-btn" class="test-btn">🗑️ 清缓存</button>
+        </div>
+        <div class="test-panel">
+            <span class="test-label">压测：</span>
+            <button id="test1-btn" class="test-btn">1️⃣ 高频</button>
+            <button id="test2-btn" class="test-btn">2️⃣ 容量</button>
+            <button id="test3-btn" class="test-btn">3️⃣ 持久</button>
+            <button id="run-all-btn" class="test-btn">🚀 全测</button>
+        </div>
+    </div>
+
+    <div id="favorites-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⭐ 我的收藏</h3>
+                <button class="modal-close" data-close="favorites-modal">×</button>
+            </div>
+            <div class="modal-body" id="favorites-list">
+                <div class="empty-state">还没有收藏的文案哦~</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="history-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📜 历史记录</h3>
+                <button class="modal-close" data-close="history-modal">×</button>
+            </div>
+            <div class="modal-body" id="history-list">
+                <div class="empty-state">还没有浏览记录哦~</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">复制成功！</div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>柔流归器</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #fff;
+    overflow: hidden;
+}
+
+.game-container {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 100%;
+}
+
+h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #00d4ff, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.level-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+}
+
+.level-display {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.target-display {
+    font-size: 0.95rem;
+    color: #00d4ff;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 400px;
+    background: linear-gradient(180deg, #0f0f23 0%, #1a1a3e 100%);
+    border-radius: 12px;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.controls {
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.control-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.angle-value {
+    color: #00d4ff;
+    font-weight: 600;
+}
+
+.slider-container {
+    position: relative;
+    width: 100%;
+}
+
+input[type="range"] {
+    width: 100%;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #00d4ff, #7c3aed);
+    border-radius: 50%;
+    cursor: grab;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 25px rgba(0, 212, 255, 0.8);
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #00d4ff, #7c3aed);
+    border-radius: 50%;
+    cursor: grab;
+    border: none;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+}
+
+.status-bar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.status-item {
+    flex: 1;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.status-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 4px;
+}
+
+.status-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.water-filled {
+    color: #00d4ff;
+}
+
+.overflow {
+    color: #ff6b6b;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00d4ff, #7c3aed);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(5px);
+}
+
+.overlay.active {
+    display: flex;
+}
+
+.modal {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    box-shadow: 0 0 40px rgba(0, 212, 255, 0.2);
+}
+
+.modal h2 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    background: linear-gradient(90deg, #00d4ff, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.modal p {
+    font-size: 1rem;
+    margin-bottom: 25px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+}
+
+.modal .btn {
+    margin: 5px;
+}
+
+.warning-flash {
+    animation: warningPulse 0.5s ease-in-out;
+}
+
+@keyframes warningPulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(255, 107, 107, 0); }
+    50% { box-shadow: 0 0 30px rgba(255, 107, 107, 0.8); }
+}
+
+.skin-controls, .slowmo-controls {
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.section-title {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.skin-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.skin-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 8px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+    font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.skin-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.skin-btn.active {
+    border-color: #00d4ff;
+    background: rgba(0, 212, 255, 0.2);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+.skin-icon {
+    font-size: 1.2rem;
+}
+
+.skin-name {
+    font-weight: 600;
+}
+
+.slowmo-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.slowmo-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.slowmo-toggle.active {
+    border-color: #7c3aed;
+    background: rgba(124, 58, 237, 0.2);
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
+}
+
+.slowmo-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.slowmo-icon {
+    font-size: 1.5rem;
+}
+
+.slowmo-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.slowmo-desc {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.toggle-switch {
+    width: 50px;
+    height: 26px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 13px;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.slowmo-toggle.active .toggle-switch {
+    background: #7c3aed;
+}
+
+.slowmo-toggle.active .toggle-switch::after {
+    left: 27px;
+}
+
+.unlock-hint {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 8px;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    h1 { font-size: 1.5rem; }
+    canvas { height: 300px; }
+    .modal { padding: 25px; }
+    .skin-btn { min-width: 70px; padding: 8px 4px; font-size: 0.75rem; }
+}
+</style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>柔流归器</h1>
+        
+        <div class="level-info">
+            <span class="level-display">第 <span id="levelNum">1</span> 关</span>
+            <span class="target-display">目标: <span id="targetWater">100</span> 单位</span>
+        </div>
+        
+        <canvas id="gameCanvas" width="560" height="400"></canvas>
+        
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-label">已收集</div>
+                <div class="status-value water-filled"><span id="collectedWater">0</span></div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">溢出量</div>
+                <div class="status-value overflow"><span id="overflowWater">0</span></div>
+            </div>
+        </div>
+        
+        <div id="debugPanel" style="display: none; margin-bottom: 15px; padding: 10px; background: rgba(255, 107, 107, 0.1); border-radius: 8px; border: 1px solid rgba(255, 107, 107, 0.3);">
+            <div style="font-size: 0.85rem; color: #ff6b6b; margin-bottom: 8px; font-weight: 600;">🔧 调试信息 (第7关双容器)</div>
+            <div style="display: flex; gap: 10px; font-size: 0.8rem;">
+                <div style="flex: 1; background: rgba(0, 212, 255, 0.1); padding: 8px; border-radius: 6px;">
+                    <div style="color: #00d4ff;">左侧容器</div>
+                    <div id="container1Debug" style="font-size: 1.1rem; font-weight: 700; color: #00d4ff;">0 / 75</div>
+                </div>
+                <div style="flex: 1; background: rgba(124, 58, 237, 0.1); padding: 8px; border-radius: 6px;">
+                    <div style="color: #7c3aed;">右侧容器</div>
+                    <div id="container2Debug" style="font-size: 1.1rem; font-weight: 700; color: #7c3aed;">0 / 75</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="skin-controls">
+            <div class="section-title">💧 水流皮肤</div>
+            <div class="skin-buttons">
+                <button class="skin-btn active" data-skin="water" onclick="setWaterSkin('water')">
+                    <span class="skin-icon">💧</span>
+                    <span class="skin-name">清水</span>
+                </button>
+                <button class="skin-btn" data-skin="bubble" onclick="setWaterSkin('bubble')">
+                    <span class="skin-icon">🫧</span>
+                    <span class="skin-name">气泡水</span>
+                </button>
+                <button class="skin-btn" data-skin="juice" onclick="setWaterSkin('juice')">
+                    <span class="skin-icon">🍊</span>
+                    <span class="skin-name">果汁</span>
+                </button>
+            </div>
+            <div class="unlock-hint">所有皮肤已解锁，自由切换</div>
+        </div>
+        
+        <div class="skin-controls">
+            <div class="section-title">🏺 容器样式</div>
+            <div class="skin-buttons">
+                <button class="skin-btn active" data-container="classic" onclick="setContainerStyle('classic')">
+                    <span class="skin-icon">🥛</span>
+                    <span class="skin-name">经典</span>
+                </button>
+                <button class="skin-btn" data-container="cup" onclick="setContainerStyle('cup')">
+                    <span class="skin-icon">🍼</span>
+                    <span class="skin-name">卡通水杯</span>
+                </button>
+                <button class="skin-btn" data-container="cloud" id="cloudStyleBtn" onclick="setContainerStyle('cloud')">
+                    <span class="skin-icon">☁️</span>
+                    <span class="skin-name">云朵盆</span>
+                </button>
+                <button class="skin-btn" data-container="heart" id="heartStyleBtn" onclick="setContainerStyle('heart')">
+                    <span class="skin-icon">💜</span>
+                    <span class="skin-name">爱心容器</span>
+                </button>
+            </div>
+            <div class="unlock-hint" id="containerUnlockHint">通关第3关解锁云朵盆，通关第5关解锁爱心容器</div>
+        </div>
+        
+        <div class="slowmo-controls">
+            <div class="section-title">⏱️ 慢放模式</div>
+            <div class="slowmo-toggle" id="slowmoToggle" onclick="toggleSlowMo()">
+                <div class="slowmo-info">
+                    <span class="slowmo-icon">🐢</span>
+                    <div>
+                        <div class="slowmo-text">水流减速</div>
+                        <div class="slowmo-desc">降低水流速度，方便精准调节</div>
+                    </div>
+                </div>
+                <div class="toggle-switch"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-label">
+                <span>角度调节</span>
+                <span class="angle-value"><span id="angleDisplay">30</span>°</span>
+            </div>
+            <div class="slider-container">
+                <input type="range" id="angleSlider" min="0" max="60" value="30" step="0.5">
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn btn-secondary" id="resetBtn">重新开始</button>
+            <button class="btn btn-secondary" id="testBtn" style="background: linear-gradient(135deg, #ff6b6b, #ee5a24);">测试: 跳至第7关</button>
+            <button class="btn btn-primary" id="nextBtn" style="display:none;">下一关</button>
+        </div>
+    </div>
+    
+    <div class="overlay" id="winOverlay">
+        <div class="modal">
+            <h2>🎉 恭喜通关！</h2>
+            <p>你成功引导水流流入容器，完成了第 <span id="winLevel">1</span> 关！</p>
+            <button class="btn btn-primary" id="continueBtn">继续挑战</button>
+        </div>
+    </div>
+    
+    <div class="overlay" id="completeOverlay">
+        <div class="modal">
+            <h2>🏆 全部通关！</h2>
+            <p>太棒了！你已经完成了所有关卡，展现了出色的水流控制技巧！</p>
+            <button class="btn btn-primary" id="replayBtn">重新游玩</button>
+        </div>
+    </div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const angleSlider = document.getElementById('angleSlider');
+const angleDisplay = document.getElementById('angleDisplay');
+const levelNum = document.getElementById('levelNum');
+const targetWater = document.getElementById('targetWater');
+const collectedWater = document.getElementById('collectedWater');
+const overflowWater = document.getElementById('overflowWater');
+const resetBtn = document.getElementById('resetBtn');
+const testBtn = document.getElementById('testBtn');
+const nextBtn = document.getElementById('nextBtn');
+const winOverlay = document.getElementById('winOverlay');
+const completeOverlay = document.getElementById('completeOverlay');
+const winLevel = document.getElementById('winLevel');
+const continueBtn = document.getElementById('continueBtn');
+const replayBtn = document.getElementById('replayBtn');
+const debugPanel = document.getElementById('debugPanel');
+const container1Debug = document.getElementById('container1Debug');
+const container2Debug = document.getElementById('container2Debug');
+
+let currentLevel = 1;
+let angle = 30;
+let particles = [];
+let collected = 0;
+let overflow = 0;
+let isFlowing = true;
+let gameWon = false;
+let warningFlash = 0;
+let currentWaterSkin = 'water';
+let currentContainerStyle = 'classic';
+let slowMotionEnabled = false;
+let unlockedContainers = ['classic', 'cup'];
+
+const GRAVITY = 0.15;
+const PARTICLE_SPEED = 3;
+const SPAWN_RATE = 2;
+const SLOW_MOTION_FACTOR = 0.4;
+
+const waterSkins = {
+    water: {
+        colors: ['rgba(0, 212, 255, 0.9)', 'rgba(0, 180, 255, 0.7)', 'rgba(0, 150, 255, 0.3)'],
+        bubble: false,
+        trail: false,
+        name: '清水'
+    },
+    bubble: {
+        colors: ['rgba(255, 255, 255, 0.9)', 'rgba(200, 230, 255, 0.7)', 'rgba(150, 200, 255, 0.3)'],
+        bubble: true,
+        trail: false,
+        name: '气泡水'
+    },
+    juice: {
+        colors: ['rgba(255, 165, 0, 0.9)', 'rgba(255, 140, 0, 0.7)', 'rgba(255, 100, 0, 0.4)'],
+        bubble: false,
+        trail: true,
+        name: '果汁'
+    }
+};
+
+const levels = [
+    {
+        target: 80,
+        containers: [{ x: 200, y: 300, width: 180, height: 80, filled: 0 }],
+        obstacles: [],
+        spawnX: 280,
+        spawnY: 50,
+        description: "入门：宽大容器，轻松上手"
+    },
+    {
+        target: 100,
+        containers: [{ x: 180, y: 300, width: 200, height: 80, filled: 0 }],
+        obstacles: [],
+        spawnX: 280,
+        spawnY: 50,
+        description: "基础：稍大容量，稳定控制"
+    },
+    {
+        target: 120,
+        containers: [{ x: 160, y: 300, width: 240, height: 80, filled: 0 }],
+        obstacles: [],
+        spawnX: 280,
+        spawnY: 50,
+        description: "进阶：更大容量，角度微调"
+    },
+    {
+        target: 100,
+        containers: [{ x: 220, y: 300, width: 120, height: 80, filled: 0 }],
+        obstacles: [{ x: 150, y: 180, width: 80, height: 15, angle: 20 }],
+        spawnX: 280,
+        spawnY: 50,
+        description: "挑战：容器收窄，注意挡板"
+    },
+    {
+        target: 110,
+        containers: [{ x: 230, y: 300, width: 100, height: 80, filled: 0 }],
+        obstacles: [
+            { x: 120, y: 160, width: 70, height: 15, angle: -15 },
+            { x: 370, y: 200, width: 70, height: 15, angle: 15 }
+        ],
+        spawnX: 280,
+        spawnY: 50,
+        description: "困难：双挡板干扰，精准控制"
+    },
+    {
+        target: 120,
+        containers: [{ x: 240, y: 300, width: 80, height: 80, filled: 0 }],
+        obstacles: [
+            { x: 100, y: 140, width: 80, height: 15, angle: 25 },
+            { x: 200, y: 200, width: 60, height: 15, angle: -20 },
+            { x: 380, y: 180, width: 80, height: 15, angle: -25 }
+        ],
+        spawnX: 280,
+        spawnY: 50,
+        description: "专家：窄口容器，多挡板"
+    },
+    {
+        target: 150,
+        containers: [
+            { x: 140, y: 280, width: 100, height: 80, filled: 0 },
+            { x: 320, y: 280, width: 100, height: 80, filled: 0 }
+        ],
+        obstacles: [{ x: 240, y: 200, width: 80, height: 15, angle: 0 }],
+        spawnX: 280,
+        spawnY: 50,
+        description: "大师：双容器，切换角度分别接水"
+    }
+];
+
+class Particle {
+    constructor(x, y, angle) {
+        const deflection = (45 - angle * 1.5) * Math.PI / 180;
+        this.x = x;
+        this.y = y;
+        this.vx = Math.sin(deflection) * PARTICLE_SPEED + (Math.random() - 0.5) * 0.5;
+        this.vy = Math.cos(deflection) * PARTICLE_SPEED + (Math.random() - 0.5) * 0.5;
+        this.radius = 3 + Math.random() * 2;
+        this.life = 1;
+        this.active = true;
+        this.collected = false;
+        this.skin = currentWaterSkin;
+        this.bubbleOffset = Math.random() * Math.PI * 2;
+        this.trail = [];
+        this.hasBubble = waterSkins[currentWaterSkin].bubble && Math.random() > 0.7;
+        this.bubbleSize = this.hasBubble ? 1 + Math.random() * 2 : 0;
+    }
+
+    update(level) {
+        if (!this.active) return;
+
+        const speedFactor = slowMotionEnabled ? SLOW_MOTION_FACTOR : 1;
+        
+        this.vy += GRAVITY * speedFactor;
+        this.x += this.vx * speedFactor;
+        this.y += this.vy * speedFactor;
+        
+        if (waterSkins[this.skin].trail) {
+            this.trail.push({ x: this.x, y: this.y, alpha: 1 });
+            if (this.trail.length > 10) {
+                this.trail.shift();
+            }
+            this.trail.forEach((t, i) => {
+                t.alpha = (i + 1) / this.trail.length * 0.5;
+            });
+        }
+
+        for (const obs of level.obstacles) {
+            if (this.checkObstacleCollision(obs)) {
+                this.deflect(obs);
+            }
+        }
+
+        for (let i = 0; i < level.containers.length; i++) {
+            const container = level.containers[i];
+            const targetPerContainer = level.target / level.containers.length;
+            if (this.checkContainerCollision(container, targetPerContainer)) {
+                if (!this.collected) {
+                    this.collected = true;
+                    this.active = false;
+                    if (container.filled < targetPerContainer) {
+                        container.filled += 1;
+                        collected += 1;
+                        if (currentLevel === 7) {
+                            console.log(`💧 粒子收集: 容器${i+1} (${i===0?'左':'右'}) +1, 该容器总量: ${container.filled}/${targetPerContainer}`);
+                        }
+                    } else {
+                        overflow += 1;
+                        if (currentLevel === 7) {
+                            console.log(`💧 容器${i+1}已满，粒子溢出`);
+                        }
+                    }
+                    updateUI();
+                    checkWin();
+                }
+                return;
+            }
+        }
+
+        if (this.x < -10 || this.x > canvas.width + 10 || this.y > canvas.height + 10) {
+            if (!this.collected) {
+                overflow += 1;
+                updateUI();
+                if (overflow % 50 === 0) {
+                    triggerWarning();
+                }
+            }
+            this.active = false;
+        }
+    }
+
+    checkObstacleCollision(obs) {
+        const rad = obs.angle * Math.PI / 180;
+        const cos = Math.cos(-rad);
+        const sin = Math.sin(-rad);
+        
+        const relX = this.x - (obs.x + obs.width / 2);
+        const relY = this.y - (obs.y + obs.height / 2);
+        
+        const rotX = relX * cos - relY * sin;
+        const rotY = relX * sin + relY * cos;
+        
+        return Math.abs(rotX) < obs.width / 2 + this.radius &&
+               Math.abs(rotY) < obs.height / 2 + this.radius;
+    }
+
+    deflect(obs) {
+        const rad = obs.angle * Math.PI / 180;
+        const normalX = -Math.sin(rad);
+        const normalY = Math.cos(rad);
+        
+        const dot = this.vx * normalX + this.vy * normalY;
+        this.vx -= 2 * dot * normalX;
+        this.vy -= 2 * dot * normalY;
+        
+        this.vx *= 0.7;
+        this.vy *= 0.7;
+        
+        this.y -= 2;
+    }
+
+    checkContainerCollision(container, targetPerContainer) {
+        const waterHeight = (container.filled / targetPerContainer) * (container.height - 10);
+        return this.x > container.x + 5 &&
+               this.x < container.x + container.width - 5 &&
+               this.y > container.y + 5 &&
+               this.y < container.y + container.height - waterHeight;
+    }
+
+    draw() {
+        if (!this.active) return;
+        
+        const skin = waterSkins[this.skin];
+        
+        if (skin.trail && this.trail.length > 0) {
+            for (let i = 0; i < this.trail.length; i++) {
+                const t = this.trail[i];
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, this.radius * (i + 1) / this.trail.length * 0.6, 0, Math.PI * 2);
+                ctx.fillStyle = skin.colors[2].replace('0.4', t.alpha * 0.4);
+                ctx.fill();
+            }
+        }
+        
+        const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+        gradient.addColorStop(0, skin.colors[0]);
+        gradient.addColorStop(0.5, skin.colors[1]);
+        gradient.addColorStop(1, skin.colors[2]);
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        if (this.hasBubble) {
+            const bubbleX = this.x + Math.sin(Date.now() * 0.005 + this.bubbleOffset) * 2;
+            const bubbleY = this.y - 1 + Math.cos(Date.now() * 0.003 + this.bubbleOffset) * 1;
+            ctx.beginPath();
+            ctx.arc(bubbleX, bubbleY, this.bubbleSize, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fill();
+        }
+        
+        ctx.beginPath();
+        ctx.arc(this.x - this.radius * 0.3, this.y - this.radius * 0.3, this.radius * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fill();
+    }
+}
+
+function getTotalTarget() {
+    return levels[currentLevel - 1].target;
+}
+
+function getCurrentLevel() {
+    return levels[currentLevel - 1];
+}
+
+function updateUI() {
+    collectedWater.textContent = collected;
+    overflowWater.textContent = overflow;
+    
+    const level = getCurrentLevel();
+    const totalFilled = level.containers.reduce((sum, c) => sum + c.filled, 0);
+    collectedWater.textContent = totalFilled;
+    
+    if (currentLevel === 7 && level.containers.length === 2) {
+        const targetPerContainer = level.target / level.containers.length;
+        container1Debug.textContent = `${level.containers[0].filled} / ${targetPerContainer}`;
+        container2Debug.textContent = `${level.containers[1].filled} / ${targetPerContainer}`;
+    }
+}
+
+function checkWin() {
+    if (gameWon) return;
+    
+    const level = getCurrentLevel();
+    const totalFilled = level.containers.reduce((sum, c) => sum + c.filled, 0);
+    
+    if (totalFilled >= level.target) {
+        gameWon = true;
+        isFlowing = false;
+        winLevel.textContent = currentLevel;
+        winOverlay.classList.add('active');
+    }
+}
+
+function triggerWarning() {
+    warningFlash = 10;
+    canvas.classList.add('warning-flash');
+    setTimeout(() => canvas.classList.remove('warning-flash'), 500);
+}
+
+function spawnParticle() {
+    if (!isFlowing) return;
+    
+    const level = getCurrentLevel();
+    const spawnFactor = slowMotionEnabled ? SLOW_MOTION_FACTOR : 1;
+    const adjustedSpawnRate = Math.max(1, Math.floor(SPAWN_RATE * spawnFactor));
+    
+    for (let i = 0; i < adjustedSpawnRate; i++) {
+        if (slowMotionEnabled && Math.random() > spawnFactor) continue;
+        const offsetX = (Math.random() - 0.5) * 10;
+        particles.push(new Particle(level.spawnX + offsetX, level.spawnY, angle));
+    }
+}
+
+function drawFaucet() {
+    const level = getCurrentLevel();
+    const x = level.spawnX;
+    const y = level.spawnY;
+    const deflection = (45 - angle * 1.5) * Math.PI / 180;
+    
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(deflection);
+    
+    ctx.fillStyle = '#8b9dc3';
+    ctx.beginPath();
+    ctx.roundRect(-15, -35, 30, 40, 5);
+    ctx.fill();
+    
+    ctx.fillStyle = '#6b7a99';
+    ctx.beginPath();
+    ctx.roundRect(-12, 0, 24, 20, 3);
+    ctx.fill();
+    
+    ctx.fillStyle = '#00d4ff';
+    ctx.beginPath();
+    ctx.arc(0, 22, 6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+    
+    ctx.strokeStyle = 'rgba(0, 212, 255, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.sin(deflection) * 80, y + Math.cos(deflection) * 80);
+    ctx.stroke();
+    ctx.setLineDash([]);
+}
+
+function drawContainers() {
+    const level = getCurrentLevel();
+    
+    for (const container of level.containers) {
+        drawContainerByStyle(container, level);
+    }
+}
+
+function drawContainerByStyle(container, level) {
+    const style = currentContainerStyle;
+    const fillPercent = Math.min(container.filled / (level.target / level.containers.length), 1);
+    const waterHeight = fillPercent * (container.height - 10);
+    
+    ctx.save();
+    
+    if (style === 'classic') {
+        drawClassicContainer(container, level, waterHeight, fillPercent);
+    } else if (style === 'cup') {
+        drawCupContainer(container, level, waterHeight, fillPercent);
+    } else if (style === 'cloud') {
+        drawCloudContainer(container, level, waterHeight, fillPercent);
+    } else if (style === 'heart') {
+        drawHeartContainer(container, level, waterHeight, fillPercent);
+    }
+    
+    ctx.restore();
+}
+
+function drawClassicContainer(container, level, waterHeight, fillPercent) {
+    ctx.fillStyle = 'rgba(100, 120, 150, 0.3)';
+    ctx.strokeStyle = 'rgba(150, 180, 220, 0.8)';
+    ctx.lineWidth = 3;
+    
+    ctx.beginPath();
+    ctx.moveTo(container.x, container.y);
+    ctx.lineTo(container.x, container.y + container.height);
+    ctx.lineTo(container.x + container.width, container.y + container.height);
+    ctx.lineTo(container.x + container.width, container.y);
+    ctx.stroke();
+    
+    drawWaterInside(container, waterHeight);
+    drawTargetLine(container);
+}
+
+function drawCupContainer(container, level, waterHeight, fillPercent) {
+    const cx = container.x + container.width / 2;
+    const cy = container.y + container.height / 2;
+    
+    ctx.fillStyle = 'rgba(255, 182, 193, 0.2)';
+    ctx.strokeStyle = 'rgba(255, 105, 180, 0.8)';
+    ctx.lineWidth = 3;
+    
+    ctx.beginPath();
+    ctx.moveTo(container.x + 5, container.y);
+    ctx.quadraticCurveTo(container.x + 10, container.y + container.height * 0.3, container.x + 15, container.y + container.height);
+    ctx.lineTo(container.x + container.width - 15, container.y + container.height);
+    ctx.quadraticCurveTo(container.x + container.width - 10, container.y + container.height * 0.3, container.x + container.width - 5, container.y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.fillStyle = 'rgba(255, 105, 180, 0.3)';
+    ctx.beginPath();
+    ctx.ellipse(container.x + container.width - 8, container.y + container.height * 0.5, 12, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 105, 180, 0.6)';
+    ctx.stroke();
+    
+    drawWaterInside(container, waterHeight);
+    drawTargetLine(container);
+}
+
+function drawCloudContainer(container, level, waterHeight, fillPercent) {
+    const cx = container.x + container.width / 2;
+    const cy = container.y + container.height / 2;
+    
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.strokeStyle = 'rgba(200, 220, 255, 0.9)';
+    ctx.lineWidth = 3;
+    
+    ctx.beginPath();
+    ctx.arc(container.x + 20, container.y + 15, 18, 0, Math.PI * 2);
+    ctx.arc(container.x + 45, container.y + 10, 22, 0, Math.PI * 2);
+    ctx.arc(container.x + container.width - 45, container.y + 10, 22, 0, Math.PI * 2);
+    ctx.arc(container.x + container.width - 20, container.y + 15, 18, 0, Math.PI * 2);
+    ctx.arc(cx, container.y + 20, 25, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.fillStyle = 'rgba(200, 220, 255, 0.4)';
+    ctx.beginPath();
+    ctx.moveTo(container.x + 10, container.y + 25);
+    ctx.quadraticCurveTo(container.x + 5, container.y + container.height * 0.6, container.x + 15, container.y + container.height);
+    ctx.lineTo(container.x + container.width - 15, container.y + container.height);
+    ctx.quadraticCurveTo(container.x + container.width - 5, container.y + container.height * 0.6, container.x + container.width - 10, container.y + 25);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(200, 220, 255, 0.7)';
+    ctx.stroke();
+    
+    drawWaterInside(container, waterHeight);
+    drawTargetLine(container);
+}
+
+function drawHeartContainer(container, level, waterHeight, fillPercent) {
+    const cx = container.x + container.width / 2;
+    const cy = container.y + container.height / 2;
+    
+    ctx.fillStyle = 'rgba(255, 100, 150, 0.2)';
+    ctx.strokeStyle = 'rgba(255, 50, 100, 0.8)';
+    ctx.lineWidth = 3;
+    
+    ctx.beginPath();
+    ctx.moveTo(cx, container.y + container.height * 0.85);
+    ctx.bezierCurveTo(
+        container.x - 10, container.y + container.height * 0.5,
+        container.x - 5, container.y - 10,
+        cx - 20, container.y + 15
+    );
+    ctx.bezierCurveTo(
+        cx - 35, container.y + 35,
+        cx - 25, container.y + 60,
+        cx, container.y + container.height * 0.85
+    );
+    ctx.bezierCurveTo(
+        cx + 25, container.y + 60,
+        cx + 35, container.y + 35,
+        cx + 20, container.y + 15
+    );
+    ctx.bezierCurveTo(
+        container.x + container.width + 5, container.y - 10,
+        container.x + container.width + 10, container.y + container.height * 0.5,
+        cx, container.y + container.height * 0.85
+    );
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx, container.y + container.height * 0.85);
+    ctx.bezierCurveTo(
+        container.x - 5, container.y + container.height * 0.5,
+        container.x, container.y,
+        cx - 15, container.y + 20
+    );
+    ctx.bezierCurveTo(
+        cx - 30, container.y + 40,
+        cx - 20, container.y + 55,
+        cx, container.y + container.height * 0.85
+    );
+    ctx.bezierCurveTo(
+        cx + 20, container.y + 55,
+        cx + 30, container.y + 40,
+        cx + 15, container.y + 20
+    );
+    ctx.bezierCurveTo(
+        container.x + container.width, container.y,
+        container.x + container.width + 5, container.y + container.height * 0.5,
+        cx, container.y + container.height * 0.85
+    );
+    ctx.clip();
+    
+    drawWaterInside(container, waterHeight);
+    ctx.restore();
+    
+    drawTargetLine(container);
+}
+
+function drawWaterInside(container, waterHeight) {
+    if (waterHeight > 0) {
+        const gradient = ctx.createLinearGradient(
+            container.x, container.y + container.height - waterHeight,
+            container.x, container.y + container.height
+        );
+        
+        const skin = waterSkins[currentWaterSkin];
+        gradient.addColorStop(0, skin.colors[1].replace('0.7', '0.6'));
+        gradient.addColorStop(1, skin.colors[2].replace('0.3', '0.8'));
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.rect(
+            container.x + 3,
+            container.y + container.height - waterHeight,
+            container.width - 6,
+            waterHeight
+        );
+        ctx.fill();
+        
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const waveY = container.y + container.height - waterHeight;
+        for (let wx = container.x + 3; wx < container.x + container.width - 3; wx += 5) {
+            const wy = waveY + Math.sin((wx + Date.now() * 0.003) * 0.1) * 2;
+            if (wx === container.x + 3) {
+                ctx.moveTo(wx, wy);
+            } else {
+                ctx.lineTo(wx, wy);
+            }
+        }
+        ctx.stroke();
+    }
+}
+
+function drawTargetLine(container) {
+    ctx.strokeStyle = 'rgba(255, 200, 0, 0.5)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(container.x + 5, container.y + 5);
+    ctx.lineTo(container.x + container.width - 5, container.y + 5);
+    ctx.stroke();
+    ctx.setLineDash([]);
+}
+
+function drawObstacles() {
+    const level = getCurrentLevel();
+    
+    for (const obs of level.obstacles) {
+        ctx.save();
+        ctx.translate(obs.x + obs.width / 2, obs.y + obs.height / 2);
+        ctx.rotate(obs.angle * Math.PI / 180);
+        
+        const gradient = ctx.createLinearGradient(-obs.width/2, 0, obs.width/2, 0);
+        gradient.addColorStop(0, '#ff6b6b');
+        gradient.addColorStop(0.5, '#ee5a5a');
+        gradient.addColorStop(1, '#ff6b6b');
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.roundRect(-obs.width / 2, -obs.height / 2, obs.width, obs.height, 4);
+        ctx.fill();
+        
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+}
+
+function drawBackground() {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+    for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.arc(
+            100 + i * 120 + Math.sin(Date.now() * 0.0005 + i) * 10,
+            100 + Math.cos(Date.now() * 0.0003 + i) * 20,
+            50 + i * 10,
+            0, Math.PI * 2
+        );
+        ctx.fill();
+    }
+    
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+    ctx.lineWidth = 1;
+    for (let y = 0; y < canvas.height; y += 30) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+}
+
+function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    drawBackground();
+    drawObstacles();
+    drawContainers();
+    drawFaucet();
+    
+    particles = particles.filter(p => p.active);
+    for (const particle of particles) {
+        particle.update(getCurrentLevel());
+        particle.draw();
+    }
+    
+    if (warningFlash > 0) {
+        ctx.fillStyle = `rgba(255, 107, 107, ${warningFlash / 20})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        warningFlash--;
+    }
+    
+    requestAnimationFrame(gameLoop);
+}
+
+function resetLevel() {
+    particles = [];
+    collected = 0;
+    overflow = 0;
+    isFlowing = true;
+    gameWon = false;
+    warningFlash = 0;
+    
+    const level = getCurrentLevel();
+    for (const container of level.containers) {
+        container.filled = 0;
+    }
+    
+    levelNum.textContent = currentLevel;
+    targetWater.textContent = level.target;
+    angleSlider.value = 30;
+    angle = 30;
+    angleDisplay.textContent = '30';
+    
+    updateUI();
+    nextBtn.style.display = 'none';
+    winOverlay.classList.remove('active');
+    completeOverlay.classList.remove('active');
+    
+    if (currentLevel === 7) {
+        debugPanel.style.display = 'block';
+        console.log('🔬 第7关测试模式：双容器调试面板已启用');
+        console.log(`   容器位置: 左侧[${level.containers[0].x}, ${level.containers[0].y}], 右侧[${level.containers[1].x}, ${level.containers[1].y}]`);
+        console.log(`   容器宽度: 左侧${level.containers[0].width}px, 右侧${level.containers[1].width}px`);
+    } else {
+        debugPanel.style.display = 'none';
+    }
+}
+
+function nextLevel() {
+    if (currentLevel < levels.length) {
+        currentLevel++;
+        
+        if (currentLevel >= 3 && !unlockedContainers.includes('cloud')) {
+            unlockContainer('cloud');
+        }
+        if (currentLevel >= 5 && !unlockedContainers.includes('heart')) {
+            unlockContainer('heart');
+        }
+        
+        resetLevel();
+    } else {
+        completeOverlay.classList.add('active');
+    }
+}
+
+angleSlider.addEventListener('input', (e) => {
+    angle = parseFloat(e.target.value);
+    angleDisplay.textContent = angle.toFixed(1);
+});
+
+resetBtn.addEventListener('click', resetLevel);
+
+testBtn.addEventListener('click', () => {
+    currentLevel = 7;
+    resetLevel();
+    console.log('测试模式：已跳转到第7关 - 双容器挑战');
+    console.log('测试步骤：');
+    console.log('1. 调节角度到 ~10°，水流应该流向右侧容器');
+    console.log('2. 调节角度到 ~50°，水流应该流向左侧容器');
+    console.log('3. 观察两个容器的接水量是否分别累计');
+    
+    setTimeout(() => {
+        console.log('🧪 自动测试开始：先测试右侧容器 (角度10°)...');
+        setAngle(10);
+    }, 500);
+    
+    setTimeout(() => {
+        console.log('🧪 切换到左侧容器 (角度50°)...');
+        setAngle(50);
+    }, 10000);
+    
+    setTimeout(() => {
+        const level = getCurrentLevel();
+        console.log('📊 测试结果：');
+        console.log(`   左侧容器: ${level.containers[0].filled}/75`);
+        console.log(`   右侧容器: ${level.containers[1].filled}/75`);
+        console.log(`   总计: ${level.containers[0].filled + level.containers[1].filled}/150`);
+        if (level.containers[0].filled > 10 && level.containers[1].filled > 10) {
+            console.log('✅ 双容器切换逻辑测试通过！');
+        } else {
+            console.log('⚠️  测试异常：请检查角度与容器对应关系');
+        }
+    }, 20000);
+});
+
+function setAngle(newAngle) {
+    angle = newAngle;
+    angleSlider.value = newAngle;
+    angleDisplay.textContent = newAngle.toFixed(1);
+    console.log(`⚙️ 角度已设置为: ${newAngle}°`);
+}
+
+function setWaterSkin(skin) {
+    if (!waterSkins[skin]) return;
+    currentWaterSkin = skin;
+    document.querySelectorAll('.skin-btn[data-skin]').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.skin === skin) {
+            btn.classList.add('active');
+        }
+    });
+    console.log(`💧 水流皮肤已切换为: ${waterSkins[skin].name}`);
+}
+
+function setContainerStyle(style) {
+    if (!unlockedContainers.includes(style)) {
+        console.log(`🔒 容器样式 "${style}" 尚未解锁`);
+        return;
+    }
+    currentContainerStyle = style;
+    document.querySelectorAll('.skin-btn[data-container]').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.container === style) {
+            btn.classList.add('active');
+        }
+    });
+    console.log(`🏺 容器样式已切换为: ${style}`);
+}
+
+function toggleSlowMo() {
+    slowMotionEnabled = !slowMotionEnabled;
+    const toggle = document.getElementById('slowmoToggle');
+    if (slowMotionEnabled) {
+        toggle.classList.add('active');
+        console.log(`🐢 慢放模式已开启 (速度: ${SLOW_MOTION_FACTOR * 100}%)`);
+    } else {
+        toggle.classList.remove('active');
+        console.log(`🐇 慢放模式已关闭`);
+    }
+}
+
+function unlockContainer(style) {
+    if (!unlockedContainers.includes(style)) {
+        unlockedContainers.push(style);
+        const btn = document.getElementById(style + 'StyleBtn');
+        if (btn) {
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        }
+        updateContainerUnlockHint();
+        console.log(`🎉 解锁新容器样式: ${style}`);
+    }
+}
+
+function updateContainerUnlockHint() {
+    const hint = document.getElementById('containerUnlockHint');
+    if (unlockedContainers.length >= 4) {
+        hint.textContent = '所有容器样式已解锁！';
+    } else {
+        let nextUnlock = '';
+        if (!unlockedContainers.includes('cloud')) {
+            nextUnlock = '通关第3关解锁云朵盆';
+        } else if (!unlockedContainers.includes('heart')) {
+            nextUnlock = '通关第5关解锁爱心容器';
+        }
+        hint.textContent = nextUnlock;
+    }
+}
+
+function updateContainerButtonStates() {
+    document.querySelectorAll('.skin-btn[data-container]').forEach(btn => {
+        const style = btn.dataset.container;
+        if (unlockedContainers.includes(style)) {
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+            btn.classList.remove('locked');
+        } else {
+            btn.style.opacity = '0.4';
+            btn.style.cursor = 'not-allowed';
+            btn.classList.add('locked');
+        }
+    });
+}
+
+nextBtn.addEventListener('click', nextLevel);
+
+continueBtn.addEventListener('click', () => {
+    winOverlay.classList.remove('active');
+    nextBtn.style.display = 'block';
+});
+
+replayBtn.addEventListener('click', () => {
+    currentLevel = 1;
+    resetLevel();
+});
+
+setInterval(spawnParticle, 16);
+
+resetLevel();
+updateContainerButtonStates();
+gameLoop();
+</script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>困难症粉碎机</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <h1>🎯 困难症粉碎机</h1>
+            <p class="subtitle">告别选择困难，让命运帮你做决定</p>
+        </header>
+
+        <nav class="mode-nav">
+            <button class="mode-btn active" data-mode="draw">
+                <span class="icon">🎰</span>
+                <span>随机抽签</span>
+            </button>
+            <button class="mode-btn" data-mode="dice">
+                <span class="icon">🎲</span>
+                <span>摇骰子</span>
+            </button>
+            <button class="mode-btn" data-mode="wheel">
+                <span class="icon">🎡</span>
+                <span>转盘决策</span>
+            </button>
+            <button class="mode-btn" data-mode="custom">
+                <span class="icon">📝</span>
+                <span>自定义选项</span>
+            </button>
+        </nav>
+
+        <main class="content">
+            <section class="mode-section active" id="mode-draw">
+                <div class="card">
+                    <h2>🎰 随机抽签</h2>
+                    <div class="draw-controls">
+                        <div class="control-group">
+                            <label>选择选项集</label>
+                            <select id="draw-preset-select">
+                                <option value="">-- 请选择 --</option>
+                            </select>
+                        </div>
+                        <div class="control-row">
+                            <div class="control-group">
+                                <label>抽取数量</label>
+                                <input type="number" id="draw-count" value="1" min="1" max="20">
+                            </div>
+                            <div class="control-group checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="draw-no-repeat" checked>
+                                    <span>不重复抽取</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="draw-display" id="draw-display">
+                        <div class="draw-placeholder">点击下方按钮开始抽签</div>
+                    </div>
+                    <button class="primary-btn" id="draw-btn">开始抽签</button>
+                    <button class="secondary-btn" id="draw-reset-btn" style="display:none;">重置</button>
+                </div>
+            </section>
+
+            <section class="mode-section" id="mode-dice">
+                <div class="card">
+                    <h2>🎲 摇骰子</h2>
+                    <div class="dice-controls">
+                        <div class="control-group">
+                            <label>骰子数量</label>
+                            <input type="number" id="dice-count" value="1" min="1" max="6">
+                        </div>
+                        <div class="control-group">
+                            <label>骰子面数</label>
+                            <select id="dice-sides">
+                                <option value="4">4面 (四面体)</option>
+                                <option value="6" selected>6面 (正方体)</option>
+                                <option value="8">8面 (八面体)</option>
+                                <option value="10">10面 (十面体)</option>
+                                <option value="12">12面 (十二面体)</option>
+                                <option value="20">20面 (二十面体)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="dice-container" id="dice-container">
+                        <div class="dice-placeholder">点击下方按钮开始摇骰子</div>
+                    </div>
+                    <div class="dice-result" id="dice-result"></div>
+                    <button class="primary-btn" id="dice-btn">开始摇骰子</button>
+                </div>
+            </section>
+
+            <section class="mode-section" id="mode-wheel">
+                <div class="card">
+                    <h2>🎡 转盘决策</h2>
+                    <div class="control-group">
+                        <label>选择选项集</label>
+                        <select id="wheel-preset-select">
+                            <option value="">-- 请选择 --</option>
+                        </select>
+                    </div>
+                    <div class="wheel-container">
+                        <canvas id="wheel-canvas" width="300" height="300"></canvas>
+                        <div class="wheel-pointer">▼</div>
+                    </div>
+                    <div class="wheel-result" id="wheel-result"></div>
+                    <button class="primary-btn" id="wheel-btn">开始转动</button>
+                </div>
+            </section>
+
+            <section class="mode-section" id="mode-custom">
+                <div class="card">
+                    <h2>📝 自定义选项管理</h2>
+                    <div class="custom-section">
+                        <h3>创建新选项集</h3>
+                        <div class="control-group">
+                            <label>选项集名称</label>
+                            <input type="text" id="custom-name" placeholder="例如：周末活动">
+                        </div>
+                        <div class="control-group">
+                            <label>选项（每行一个）</label>
+                            <textarea id="custom-options" placeholder="看电影&#10;去逛街&#10;宅在家&#10;运动健身"></textarea>
+                        </div>
+                        <button class="primary-btn" id="custom-save-btn">保存选项集</button>
+                    </div>
+                    <div class="custom-section">
+                        <h3>已有选项集</h3>
+                        <div class="preset-list" id="preset-list"></div>
+                    </div>
+                    <div class="custom-section">
+                        <h3>📋 预设模板</h3>
+                        <p class="hint">点击即可快速添加到你的选项集中</p>
+                        <div class="template-grid" id="template-grid"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script src="js/utils/random.js"></script>
+    <script src="js/utils/storage.js"></script>
+    <script src="js/utils/eventBus.js"></script>
+    <script src="js/modules/custom.js"></script>
+    <script src="js/modules/draw.js"></script>
+    <script src="js/modules/dice.js"></script>
+    <script src="js/modules/wheel.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

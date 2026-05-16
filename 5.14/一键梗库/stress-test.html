@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一键梗库 - 压力测试工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 32px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .test-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .test-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pending { background: #e0e0e0; color: #666; }
+        .status-running { background: #fff3cd; color: #856404; }
+        .status-passed { background: #d4edda; color: #155724; }
+        .status-failed { background: #f8d7da; color: #721c24; }
+
+        .test-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .test-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .progress-container {
+            margin-top: 16px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .log-container {
+            margin-top: 16px;
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+        }
+
+        .log-line {
+            margin-bottom: 4px;
+            line-height: 1.5;
+        }
+
+        .log-info { color: #4ec9b0; }
+        .log-warn { color: #ce9178; }
+        .log-error { color: #f48771; }
+        .log-success { color: #6a9955; }
+
+        .result-summary {
+            margin-top: 16px;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 14px;
+        }
+
+        .result-label {
+            color: #666;
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .result-value.success {
+            color: #28a745;
+        }
+
+        .result-value.failed {
+            color: #dc3545;
+        }
+
+        .nav-link {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 12px 24px;
+            background: #f0f0f0;
+            color: #666;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .running-indicator {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 一键梗库 - 压力测试工具</h1>
+        <p class="subtitle">全面测试系统稳定性、性能和数据持久化能力</p>
+
+        <div class="test-section">
+            <div class="test-header">
+                <div class="test-title">
+                    🏃 测试 1: 高频点击压测
+                </div>
+                <span id="test1-status" class="test-status status-pending">待测试</span>
+            </div>
+            <div class="test-description">
+                连续快速点击收藏 / 取消收藏按钮 ≥500 次<br>
+                验证：按钮响应正常，状态切换准确，无重复收藏、状态卡死、点击无响应
+            </div>
+            <div class="test-actions">
+                <button id="test1-btn" class="btn btn-primary" onclick="runTest1()">开始测试</button>
+                <button class="btn btn-secondary" onclick="clearFavorites()">清空收藏数据</button>
+            </div>
+            <div id="test1-progress" class="progress-container" style="display: none;">
+                <div class="progress-bar">
+                    <div id="test1-progress-fill" class="progress-fill"></div>
+                </div>
+                <div id="test1-progress-text" class="progress-text">准备中...</div>
+            </div>
+            <div id="test1-log" class="log-container" style="display: none;"></div>
+            <div id="test1-result" class="result-summary" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">
+                <div class="test-title">
+                    💾 测试 2: 大容量数据压测
+                </div>
+                <span id="test2-status" class="test-status status-pending">待测试</span>
+            </div>
+            <div class="test-description">
+                批量收藏文案 ≥200 条（覆盖离线文案 + 联网热梗 + AI 微调文案）<br>
+                验证：收藏列表完整展示，无缺失、乱序、重复条目；本地存储正常，不卡顿
+            </div>
+            <div class="test-actions">
+                <button id="test2-btn" class="btn btn-primary" onclick="runTest2()">开始测试</button>
+                <button class="btn btn-secondary" onclick="clearFavorites()">清空收藏数据</button>
+            </div>
+            <div id="test2-progress" class="progress-container" style="display: none;">
+                <div class="progress-bar">
+                    <div id="test2-progress-fill" class="progress-fill"></div>
+                </div>
+                <div id="test2-progress-text" class="progress-text">准备中...</div>
+            </div>
+            <div id="test2-log" class="log-container" style="display: none;"></div>
+            <div id="test2-result" class="result-summary" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">
+                <div class="test-title">
+                    🔄 测试 3: 重启持久化压测
+                </div>
+                <span id="test3-status" class="test-status status-pending">待测试</span>
+            </div>
+            <div class="test-description">
+                收藏 100+ 条文案，关闭页面、刷新、重新打开，多次开关 ≥20 轮<br>
+                验证：收藏数据 100% 不丢失，持久化正常
+            </div>
+            <div class="test-actions">
+                <button id="test3-btn" class="btn btn-primary" onclick="runTest3()">开始测试</button>
+                <button class="btn btn-secondary" onclick="clearFavorites()">清空收藏数据</button>
+                <button class="btn btn-secondary" onclick="generateTestData(100)">生成100条测试数据</button>
+            </div>
+            <div id="test3-progress" class="progress-container" style="display: none;">
+                <div class="progress-bar">
+                    <div id="test3-progress-fill" class="progress-fill"></div>
+                </div>
+                <div id="test3-progress-text" class="progress-text">准备中...</div>
+            </div>
+            <div id="test3-log" class="log-container" style="display: none;"></div>
+            <div id="test3-result" class="result-summary" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">
+                <div class="test-title">
+                    📊 综合测试报告
+                </div>
+                <span id="overall-status" class="test-status status-pending">未完成</span>
+            </div>
+            <div id="overall-result" class="result-summary">
+                <div class="result-item">
+                    <span class="result-label">测试 1 (高频点击):</span>
+                    <span id="overall-test1" class="result-value">未执行</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">测试 2 (大容量):</span>
+                    <span id="overall-test2" class="result-value">未执行</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">测试 3 (持久化):</span>
+                    <span id="overall-test3" class="result-value">未执行</span>
+                </div>
+                <div class="result-item" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee;">
+                    <span class="result-label">总体评价:</span>
+                    <span id="overall-grade" class="result-value">-</span>
+                </div>
+            </div>
+        </div>
+
+        <a href="index.html" class="nav-link">← 返回主应用</a>
+    </div>
+
+    <script>
+        const FAVORITES_KEY = 'yijian_gengku_favorites';
+
+        function log(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const line = document.createElement('div');
+            line.className = `log-line log-${type}`;
+            const time = new Date().toLocaleTimeString();
+            line.textContent = `[${time}] ${message}`;
+            container.appendChild(line);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function updateStatus(testId, status, text) {
+            const el = document.getElementById(`test${testId}-status`);
+            el.className = `test-status status-${status}`;
+            if (status === 'running') {
+                el.innerHTML = `<span class="running-indicator">${text}</span>`;
+            } else {
+                el.textContent = text;
+            }
+        }
+
+        function updateProgress(testId, current, total, extraText = '') {
+            const percent = Math.round((current / total) * 100);
+            document.getElementById(`test${testId}-progress-fill`).style.width = `${percent}%`;
+            document.getElementById(`test${testId}-progress-text`).textContent = 
+                `${current}/${total} (${percent}%) ${extraText}`;
+        }
+
+        function getFavorites() {
+            try {
+                const saved = localStorage.getItem(FAVORITES_KEY);
+                return saved ? JSON.parse(saved) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveFavorites(favorites) {
+            localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+        }
+
+        function clearFavorites() {
+            localStorage.removeItem(FAVORITES_KEY);
+            alert('收藏数据已清空');
+        }
+
+        function generateTestData(count) {
+            const categories = ['love', 'crazy', 'moments', 'emoji'];
+            const samples = {
+                love: ['你是我的今天和明天', '超级喜欢你', '你是我的理想型', '想你了', '爱你三千遍'],
+                crazy: ['谁懂啊家人们', '真的会谢', '破防了', '蚌埠住了', '狠狠的期待住了'],
+                moments: ['生活原本沉闷', '保持热爱', '奔赴山海', '慢慢理解世界', '温柔和浪漫'],
+                emoji: ['(๑•̀ㅂ•́)و✧', '٩(๑•̀ω•́๑)۶', '✧*｡٩(ˊᗜˋ*)و✧*｡', '(=^･ω･^=)', '(≧∇≦)ﾉ']
+            };
+            
+            const favorites = [];
+            for (let i = 0; i < count; i++) {
+                const category = categories[i % categories.length];
+                const sampleList = samples[category];
+                favorites.push({
+                    quote: `${sampleList[i % sampleList.length]} #${i + 1}`,
+                    category: category,
+                    time: Date.now() - i * 1000
+                });
+            }
+            saveFavorites(favorites);
+            alert(`已生成 ${count} 条测试数据`);
+        }
+
+        async function runTest1() {
+            const btn = document.getElementById('test1-btn');
+            btn.disabled = true;
+            document.getElementById('test1-progress').style.display = 'block';
+            document.getElementById('test1-log').style.display = 'block';
+            document.getElementById('test1-result').style.display = 'none';
+            document.getElementById('test1-log').innerHTML = '';
+            updateStatus(1, 'running', '测试中...');
+
+            clearFavorites();
+            log('test1-log', '开始高频点击压测（500次收藏/取消）', 'info');
+
+            const totalClicks = 500;
+            let errors = 0;
+            let duplicateCount = 0;
+            let stateMismatch = 0;
+            let startTime = Date.now();
+            let lastCount = 0;
+
+            const testQuote = '压测专用文案 #';
+            
+            for (let i = 0; i < totalClicks; i++) {
+                const quote = testQuote + Math.floor(i / 2);
+                const isAdd = i % 2 === 0;
+
+                try {
+                    let favorites = getFavorites();
+                    const existingIndex = favorites.findIndex(f => f.quote === quote);
+
+                    if (isAdd) {
+                        if (existingIndex === -1) {
+                            favorites.unshift({ quote, category: 'love', time: Date.now() });
+                            saveFavorites(favorites);
+                            
+                            const after = getFavorites();
+                            if (!after.find(f => f.quote === quote)) {
+                                errors++;
+                                log('test1-log', `第${i}次: 收藏失败，数据未写入`, 'error');
+                            }
+                        } else {
+                            duplicateCount++;
+                            log('test1-log', `第${i}次: 重复收藏检测: ${quote}`, 'warn');
+                        }
+                    } else {
+                        if (existingIndex > -1) {
+                            favorites.splice(existingIndex, 1);
+                            saveFavorites(favorites);
+                            
+                            const after = getFavorites();
+                            if (after.find(f => f.quote === quote)) {
+                                errors++;
+                                log('test1-log', `第${i}次: 取消收藏失败，数据未删除`, 'error');
+                            }
+                        } else {
+                            stateMismatch++;
+                            log('test1-log', `第${i}次: 状态不一致，取消收藏时不存在`, 'warn');
+                        }
+                    }
+
+                    if (i % 50 === 0) {
+                        const current = getFavorites();
+                        const expectedCount = Math.ceil((i + 1) / 2);
+                        if (current.length !== expectedCount) {
+                            log('test1-log', `第${i}次: 数量不匹配，期望${expectedCount}，实际${current.length}`, 'error');
+                            errors++;
+                        }
+                        updateProgress(1, i + 1, totalClicks, `错误: ${errors}`);
+                        log('test1-log', `进度 ${i + 1}/${totalClicks}，当前收藏数: ${current.length}`, 'info');
+                    }
+
+                    if (i % 10 === 0) {
+                        await new Promise(r => setTimeout(r, 1));
+                    }
+                } catch (e) {
+                    errors++;
+                    log('test1-log', `第${i}次: 异常 - ${e.message}`, 'error');
+                }
+            }
+
+            const duration = (Date.now() - startTime) / 1000;
+            const finalFavorites = getFavorites();
+            const expectedFinalCount = Math.ceil(totalClicks / 2);
+            const countMatch = finalFavorites.length === expectedFinalCount;
+
+            log('test1-log', `测试完成，用时 ${duration.toFixed(2)} 秒`, 'info');
+            log('test1-log', `最终收藏数: ${finalFavorites.length} (期望: ${expectedFinalCount})`, countMatch ? 'success' : 'error');
+
+            const passed = errors === 0 && countMatch && duplicateCount === 0;
+            
+            document.getElementById('test1-result').style.display = 'block';
+            document.getElementById('test1-result').innerHTML = `
+                <div class="result-item">
+                    <span class="result-label">总点击次数:</span>
+                    <span class="result-value">${totalClicks} 次</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">测试用时:</span>
+                    <span class="result-value">${duration.toFixed(2)} 秒</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">平均速度:</span>
+                    <span class="result-value">${(totalClicks / duration).toFixed(0)} 次/秒</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">最终收藏数:</span>
+                    <span class="result-value ${countMatch ? 'success' : 'failed'}">${finalFavorites.length} / ${expectedFinalCount}</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">操作错误:</span>
+                    <span class="result-value ${errors === 0 ? 'success' : 'failed'}">${errors} 次</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">重复收藏:</span>
+                    <span class="result-value ${duplicateCount === 0 ? 'success' : 'failed'}">${duplicateCount} 次</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">状态不一致:</span>
+                    <span class="result-value ${stateMismatch === 0 ? 'success' : 'failed'}">${stateMismatch} 次</span>
+                </div>
+                <div class="result-item" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee;">
+                    <span class="result-label">测试结果:</span>
+                    <span class="result-value ${passed ? 'success' : 'failed'}">${passed ? '✅ 通过' : '❌ 未通过'}</span>
+                </div>
+            `;
+
+            updateStatus(1, passed ? 'passed' : 'failed', passed ? '通过' : '未通过');
+            document.getElementById('overall-test1').textContent = passed ? '✅ 通过' : '❌ 未通过';
+            document.getElementById('overall-test1').className = `result-value ${passed ? 'success' : 'failed'}`;
+            updateOverallGrade();
+
+            btn.disabled = false;
+        }
+
+        async function runTest2() {
+            const btn = document.getElementById('test2-btn');
+            btn.disabled = true;
+            document.getElementById('test2-progress').style.display = 'block';
+            document.getElementById('test2-log').style.display = 'block';
+            document.getElementById('test2-result').style.display = 'none';
+            document.getElementById('test2-log').innerHTML = '';
+            updateStatus(2, 'running', '测试中...');
+
+            clearFavorites();
+            log('test2-log', '开始大容量数据压测（200条收藏）', 'info');
+
+            const totalItems = 200;
+            const categories = ['love', 'crazy', 'moments', 'emoji'];
+            let errors = 0;
+            let startTime = Date.now();
+
+            log('test2-log', '开始批量插入数据...', 'info');
+
+            for (let i = 0; i < totalItems; i++) {
+                const category = categories[i % categories.length];
+                const quote = `大容量测试文案 #${i + 1} - ${new Date().toLocaleTimeString()}`;
+                
+                try {
+                    const favorites = getFavorites();
+                    favorites.unshift({ quote, category, time: Date.now() - i * 1000 });
+                    saveFavorites(favorites);
+
+                    if (i % 20 === 0) {
+                        updateProgress(2, i + 1, totalItems);
+                        log('test2-log', `已插入 ${i + 1}/${totalItems} 条数据`, 'info');
+                    }
+                } catch (e) {
+                    errors++;
+                    log('test2-log', `第${i}条: 插入异常 - ${e.message}`, 'error');
+                }
+            }
+
+            const insertDuration = (Date.now() - startTime) / 1000;
+            log('test2-log', `数据插入完成，用时 ${insertDuration.toFixed(2)} 秒`, 'info');
+
+            log('test2-log', '开始验证数据完整性...', 'info');
+            startTime = Date.now();
+
+            const finalFavorites = getFavorites();
+            let missingCount = 0;
+            let duplicateCount = 0;
+            let orderErrors = 0;
+
+            const seenQuotes = new Set();
+            for (let i = 0; i < finalFavorites.length; i++) {
+                const item = finalFavorites[i];
+                
+                if (seenQuotes.has(item.quote)) {
+                    duplicateCount++;
+                    log('test2-log', `重复数据: ${item.quote}`, 'warn');
+                }
+                seenQuotes.add(item.quote);
+
+                if (i > 0 && finalFavorites[i].time > finalFavorites[i - 1].time) {
+                    orderErrors++;
+                }
+            }
+
+            for (let i = 0; i < totalItems; i++) {
+                const expectedQuote = `大容量测试文案 #${i + 1}`;
+                if (!finalFavorites.find(f => f.quote && f.quote.includes(`#${i + 1}`))) {
+                    missingCount++;
+                    log('test2-log', `缺失数据: #${i + 1}`, 'error');
+                }
+            }
+
+            const verifyDuration = (Date.now() - startTime) / 1000;
+            log('test2-log', `数据验证完成，用时 ${verifyDuration.toFixed(2)} 秒`, 'info');
+
+            const localStorageSize = new Blob([localStorage.getItem(FAVORITES_KEY)]).size / 1024;
+            
+            const passed = errors === 0 && missingCount === 0 && duplicateCount === 0;
+
+            document.getElementById('test2-result').style.display = 'block';
+            document.getElementById('test2-result').innerHTML = `
+                <div class="result-item">
+                    <span class="result-label">数据总数:</span>
+                    <span class="result-value">${totalItems} 条</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">实际存储数:</span>
+                    <span class="result-value ${finalFavorites.length === totalItems ? 'success' : 'failed'}">${finalFavorites.length} 条</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">插入用时:</span>
+                    <span class="result-value">${insertDuration.toFixed(2)} 秒</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">验证用时:</span>
+                    <span class="result-value">${verifyDuration.toFixed(2)} 秒</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">存储大小:</span>
+                    <span class="result-value">${localStorageSize.toFixed(2)} KB</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">操作异常:</span>
+                    <span class="result-value ${errors === 0 ? 'success' : 'failed'}">${errors} 次</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">缺失数据:</span>
+                    <span class="result-value ${missingCount === 0 ? 'success' : 'failed'}">${missingCount} 条</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">重复数据:</span>
+                    <span class="result-value ${duplicateCount === 0 ? 'success' : 'failed'}">${duplicateCount} 条</span>
+                </div>
+                <div class="result-item" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee;">
+                    <span class="result-label">测试结果:</span>
+                    <span class="result-value ${passed ? 'success' : 'failed'}">${passed ? '✅ 通过' : '❌ 未通过'}</span>
+                </div>
+            `;
+
+            updateStatus(2, passed ? 'passed' : 'failed', passed ? '通过' : '未通过');
+            document.getElementById('overall-test2').textContent = passed ? '✅ 通过' : '❌ 未通过';
+            document.getElementById('overall-test2').className = `result-value ${passed ? 'success' : 'failed'}`;
+            updateOverallGrade();
+
+            btn.disabled = false;
+        }
+
+        async function runTest3() {
+            const btn = document.getElementById('test3-btn');
+            btn.disabled = true;
+            document.getElementById('test3-progress').style.display = 'block';
+            document.getElementById('test3-log').style.display = 'block';
+            document.getElementById('test3-result').style.display = 'none';
+            document.getElementById('test3-log').innerHTML = '';
+            updateStatus(3, 'running', '测试中...');
+
+            clearFavorites();
+            log('test3-log', '开始重启持久化压测（20轮）', 'info');
+
+            const initialCount = 100;
+            const totalRounds = 20;
+            let errors = 0;
+            let dataLossCount = 0;
+            let referenceQuotes = [];
+
+            log('test3-log', `生成 ${initialCount} 条初始测试数据...`, 'info');
+            for (let i = 0; i < initialCount; i++) {
+                referenceQuotes.push({
+                    quote: `持久化测试 #${i + 1}`,
+                    category: ['love', 'crazy', 'moments', 'emoji'][i % 4],
+                    time: Date.now() - i * 1000
+                });
+            }
+            saveFavorites(referenceQuotes);
+
+            const initialVerify = getFavorites();
+            if (initialVerify.length !== initialCount) {
+                log('test3-log', `初始数据验证失败，期望 ${initialCount}，实际 ${initialVerify.length}`, 'error');
+                errors++;
+            }
+
+            let startTime = Date.now();
+
+            for (let round = 1; round <= totalRounds; round++) {
+                log('test3-log', `第 ${round}/${totalRounds} 轮测试...`, 'info');
+
+                try {
+                    const current = getFavorites();
+                    
+                    if (current.length !== initialCount) {
+                        dataLossCount++;
+                        log('test3-log', `第${round}轮: 数据丢失，期望${initialCount}，实际${current.length}`, 'error');
+                        errors++;
+                    }
+
+                    for (let i = 0; i < initialCount; i++) {
+                        const expected = `持久化测试 #${i + 1}`;
+                        if (!current.find(f => f.quote === expected)) {
+                            log('test3-log', `第${round}轮: 缺失数据 #${i + 1}`, 'error');
+                            errors++;
+                        }
+                    }
+
+                    const modifyCount = Math.floor(Math.random() * 3) + 1;
+                    for (let i = 0; i < modifyCount; i++) {
+                        const favorites = getFavorites();
+                        if (favorites.length > 0 && Math.random() > 0.5) {
+                            favorites.splice(Math.floor(Math.random() * favorites.length), 1);
+                            saveFavorites(favorites);
+                        } else {
+                            favorites.unshift({
+                                quote: `持久化测试 #${initialCount + round * 10 + i + 1}`,
+                                category: 'love',
+                                time: Date.now()
+                            });
+                            saveFavorites(favorites);
+                        }
+                    }
+
+                    await new Promise(r => setTimeout(r, 10));
+
+                    const afterModify = getFavorites();
+                    localStorage.setItem('temp_backup', JSON.stringify(afterModify));
+
+                    const restored = JSON.parse(localStorage.getItem('temp_backup'));
+                    if (restored.length !== afterModify.length) {
+                        log('test3-log', `第${round}轮: 模拟重启后数据不一致`, 'error');
+                        errors++;
+                    }
+
+                    updateProgress(3, round, totalRounds, `错误: ${errors}`);
+                } catch (e) {
+                    errors++;
+                    log('test3-log', `第${round}轮: 异常 - ${e.message}`, 'error');
+                }
+            }
+
+            const duration = (Date.now() - startTime) / 1000;
+            const finalData = getFavorites();
+            log('test3-log', `测试完成，用时 ${duration.toFixed(2)} 秒`, 'info');
+
+            const passed = errors === 0 && dataLossCount === 0;
+
+            document.getElementById('test3-result').style.display = 'block';
+            document.getElementById('test3-result').innerHTML = `
+                <div class="result-item">
+                    <span class="result-label">测试轮数:</span>
+                    <span class="result-value">${totalRounds} 轮</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">初始数据量:</span>
+                    <span class="result-value">${initialCount} 条</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">最终数据量:</span>
+                    <span class="result-value">${finalData.length} 条</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">总用时:</span>
+                    <span class="result-value">${duration.toFixed(2)} 秒</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">数据丢失次数:</span>
+                    <span class="result-value ${dataLossCount === 0 ? 'success' : 'failed'}">${dataLossCount} 次</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">操作异常:</span>
+                    <span class="result-value ${errors === 0 ? 'success' : 'failed'}">${errors} 次</span>
+                </div>
+                <div class="result-item" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee;">
+                    <span class="result-label">测试结果:</span>
+                    <span class="result-value ${passed ? 'success' : 'failed'}">${passed ? '✅ 通过' : '❌ 未通过'}</span>
+                </div>
+            `;
+
+            localStorage.removeItem('temp_backup');
+            updateStatus(3, passed ? 'passed' : 'failed', passed ? '通过' : '未通过');
+            document.getElementById('overall-test3').textContent = passed ? '✅ 通过' : '❌ 未通过';
+            document.getElementById('overall-test3').className = `result-value ${passed ? 'success' : 'failed'}`;
+            updateOverallGrade();
+
+            btn.disabled = false;
+        }
+
+        function updateOverallGrade() {
+            const t1 = document.getElementById('overall-test1').textContent;
+            const t2 = document.getElementById('overall-test2').textContent;
+            const t3 = document.getElementById('overall-test3').textContent;
+
+            const completed = [t1, t2, t3].filter(t => t !== '未执行');
+            const passed = completed.filter(t => t.includes('✅')).length;
+
+            if (completed.length === 0) {
+                document.getElementById('overall-status').className = 'test-status status-pending';
+                document.getElementById('overall-status').textContent = '未完成';
+                document.getElementById('overall-grade').textContent = '-';
+            } else if (passed === completed.length && completed.length === 3) {
+                document.getElementById('overall-status').className = 'test-status status-passed';
+                document.getElementById('overall-status').textContent = '全部通过';
+                document.getElementById('overall-grade').textContent = '🏆 优秀 (3/3)';
+                document.getElementById('overall-grade').className = 'result-value success';
+            } else if (passed === completed.length) {
+                document.getElementById('overall-status').className = 'test-status status-running';
+                document.getElementById('overall-status').textContent = '进行中';
+                document.getElementById('overall-grade').textContent = `✅ 进行中 (${passed}/3)`;
+                document.getElementById('overall-grade').className = 'result-value success';
+            } else {
+                document.getElementById('overall-status').className = 'test-status status-failed';
+                document.getElementById('overall-status').textContent = '存在失败';
+                document.getElementById('overall-grade').textContent = `❌ 失败 (${passed}/3)`;
+                document.getElementById('overall-grade').className = 'result-value failed';
+            }
+        }
+    </script>
+</body>
+</html>
