@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>镜像临摹师</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🪞 镜像临摹师</h1>
+            <div class="level-info">
+                <span>关卡: <span id="currentLevel">1</span> / <span id="totalLevels">12</span></span>
+                <span>镜像模式: <span id="mirrorMode">↔️ 左右镜像</span></span>
+                <span>相似度: <span id="similarity">0%</span></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <div class="canvas-container">
+                <div class="canvas-wrapper">
+                    <div class="canvas-label">📷 参考图形</div>
+                    <canvas id="referenceCanvas" width="400" height="500"></canvas>
+                    <div class="center-line reference-line"></div>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <div class="canvas-wrapper">
+                    <div class="canvas-label">✏️ 你的绘画</div>
+                    <canvas id="drawCanvas" width="400" height="500"></canvas>
+                    <div class="center-line draw-line"></div>
+                    <canvas id="mirrorPreview" width="400" height="500"></canvas>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="undoBtn" class="btn btn-secondary">↩️ 撤销</button>
+                <button id="clearBtn" class="btn btn-warning">🗑️ 清空</button>
+                <button id="checkBtn" class="btn btn-primary">✅ 检查对称</button>
+                <button id="hintBtn" class="btn btn-info">💡 提示</button>
+                <button id="nextBtn" class="btn btn-success" disabled>➡️ 下一关</button>
+            </div>
+
+            <div class="message" id="message"></div>
+        </main>
+
+        <div class="level-selector">
+            <h3>选择关卡</h3>
+            <div id="levelButtons" class="level-buttons"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <h2>🎉 恭喜通关！</h2>
+            <p>相似度: <span id="finalSimilarity">0%</span></p>
+            <button id="modalNextBtn" class="btn btn-success">下一关</button>
+            <button id="modalReplayBtn" class="btn btn-secondary">再玩一次</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

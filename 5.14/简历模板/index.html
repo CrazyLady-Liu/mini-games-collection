@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简历小工具</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>简历小工具</h1>
+            <div class="header-actions">
+                <select id="template-select">
+                    <option value="classic">经典模板</option>
+                    <option value="modern">现代模板</option>
+                    <option value="minimal">简约模板</option>
+                </select>
+                <button id="fill-btn" class="btn btn-secondary">填充数据</button>
+                <button id="save-btn" class="btn btn-primary">保存数据</button>
+                <button id="load-btn" class="btn btn-secondary">加载数据</button>
+                <button id="clear-btn" class="btn btn-danger">清空数据</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <aside class="editor-panel">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="basic">基础信息</button>
+                    <button class="tab-btn" data-tab="experience">工作经历</button>
+                    <button class="tab-btn" data-tab="education">教育经历</button>
+                    <button class="tab-btn" data-tab="skills">技能</button>
+                </div>
+
+                <div class="tab-content active" id="tab-basic">
+                    <div class="form-group">
+                        <label>姓名</label>
+                        <input type="text" id="name" placeholder="请输入姓名">
+                    </div>
+                    <div class="form-group">
+                        <label>职位</label>
+                        <input type="text" id="title" placeholder="请输入目标职位">
+                    </div>
+                    <div class="form-group">
+                        <label>电话</label>
+                        <input type="tel" id="phone" placeholder="请输入电话号码">
+                    </div>
+                    <div class="form-group">
+                        <label>邮箱</label>
+                        <input type="email" id="email" placeholder="请输入邮箱地址">
+                    </div>
+                    <div class="form-group">
+                        <label>个人简介</label>
+                        <textarea id="summary" rows="4" placeholder="请输入个人简介"></textarea>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-experience">
+                    <div id="experience-list"></div>
+                    <button id="add-experience" class="btn btn-block btn-secondary">+ 添加工作经历</button>
+                </div>
+
+                <div class="tab-content" id="tab-education">
+                    <div id="education-list"></div>
+                    <button id="add-education" class="btn btn-block btn-secondary">+ 添加教育经历</button>
+                </div>
+
+                <div class="tab-content" id="tab-skills">
+                    <div id="skills-list"></div>
+                    <button id="add-skill" class="btn btn-block btn-secondary">+ 添加技能</button>
+                </div>
+            </aside>
+
+            <section class="preview-panel">
+                <div class="preview-container">
+                    <div id="resume-preview" class="resume-preview"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/templates.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

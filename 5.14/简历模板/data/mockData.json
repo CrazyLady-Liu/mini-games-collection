@@ -1,0 +1,56 @@
+{
+  "name": "张小明",
+  "title": "高级前端工程师",
+  "phone": "138-8888-8888",
+  "email": "zhangxiaoming@email.com",
+  "summary": "拥有5年前端开发经验，精通React、Vue等主流框架。热爱技术，善于解决复杂问题，具备良好的团队协作能力。对前端性能优化、用户体验有深入研究，曾主导多个大型项目的前端架构设计。",
+  "experiences": [
+    {
+      "id": 1,
+      "company": "阿里巴巴集团",
+      "position": "高级前端工程师",
+      "startDate": "2022.03",
+      "endDate": "至今",
+      "location": "杭州",
+      "description": "负责淘宝核心业务页面开发，主导前端架构优化，页面加载速度提升40%。带领5人团队完成多个大型项目，推动前端工程化建设。"
+    },
+    {
+      "id": 2,
+      "company": "字节跳动",
+      "position": "前端工程师",
+      "startDate": "2020.06",
+      "endDate": "2022.02",
+      "location": "北京",
+      "description": "参与抖音电商业务开发，负责商品详情页、购物车等核心模块。使用React技术栈，推动组件库建设，提升团队开发效率30%。"
+    }
+  ],
+  "educations": [
+    {
+      "id": 1,
+      "school": "浙江大学",
+      "degree": "硕士",
+      "major": "计算机科学与技术",
+      "startDate": "2017.09",
+      "endDate": "2020.06",
+      "description": "研究方向：前端工程化。发表SCI论文2篇，获得国家奖学金，优秀毕业生。"
+    },
+    {
+      "id": 2,
+      "school": "武汉大学",
+      "degree": "本科",
+      "major": "软件工程",
+      "startDate": "2013.09",
+      "endDate": "2017.06",
+      "description": "GPA 3.8/4.0，获得优秀毕业生称号，多次获得学业奖学金。"
+    }
+  ],
+  "skills": [
+    { "id": 1, "name": "React", "level": "精通" },
+    { "id": 2, "name": "Vue", "level": "精通" },
+    { "id": 3, "name": "TypeScript", "level": "熟练" },
+    { "id": 4, "name": "Node.js", "level": "熟练" },
+    { "id": 5, "name": "Webpack", "level": "熟练" },
+    { "id": 6, "name": "Git", "level": "熟练" }
+  ],
+  "template": "modern"
+}
