@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语义滤镜 - 文字筛选游戏</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1 class="game-title">🔍 语义滤镜</h1>
+            <div class="game-stats">
+                <div class="stat-item">
+                    <span class="stat-label">关卡</span>
+                    <span class="stat-value" id="levelDisplay">1</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">得分</span>
+                    <span class="stat-value" id="scoreDisplay">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">连击</span>
+                    <span class="stat-value" id="comboDisplay">0</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="game-main">
+            <div class="condition-card">
+                <div class="condition-label">🔮 隐藏语义条件</div>
+                <div class="condition-text" id="conditionText">加载中...</div>
+                <div class="condition-hint" id="conditionHint">找出所有符合条件的句子</div>
+            </div>
+
+            <div class="sentences-container" id="sentencesContainer">
+            </div>
+
+            <div class="game-controls">
+                <button class="btn btn-reset" id="resetBtn">
+                    <span class="btn-icon">🔄</span>
+                    重置选择
+                </button>
+            </div>
+
+            <div class="feedback" id="feedback"></div>
+        </main>
+
+        <div class="modal" id="startModal">
+            <div class="modal-content">
+                <h2>🎮 欢迎来到语义滤镜</h2>
+                <div class="modal-rules">
+                    <p><strong>游戏规则：</strong></p>
+                    <ul>
+                        <li>根据给出的<strong>语义条件</strong>，勾选所有符合条件的句子</li>
+                        <li>必须<strong>完全匹配</strong>，不能多选也不能漏选</li>
+                        <li>选对所有符合条件的句子后<strong>自动跳转</strong>下一关</li>
+                        <li>选错会自动重置，连击中断</li>
+                        <li>难度会逐渐提升，加油！</li>
+                    </ul>
+                </div>
+                <button class="btn btn-start" id="startBtn">开始游戏</button>
+            </div>
+        </div>
+
+        <div class="modal hidden" id="gameOverModal">
+            <div class="modal-content">
+                <h2>🎯 游戏结束</h2>
+                <div class="final-stats">
+                    <div class="final-stat">
+                        <span>最终关卡</span>
+                        <strong id="finalLevel">1</strong>
+                    </div>
+                    <div class="final-stat">
+                        <span>最终得分</span>
+                        <strong id="finalScore">0</strong>
+                    </div>
+                    <div class="final-stat">
+                        <span>最高连击</span>
+                        <strong id="finalCombo">0</strong>
+                    </div>
+                </div>
+                <button class="btn btn-start" id="restartBtn">再来一局</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
