@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流光择序</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <div id="ui-overlay">
+            <div id="game-info">
+                <div class="info-item">
+                    <span class="label">关卡</span>
+                    <span id="level">1</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">进度</span>
+                    <span id="progress">0/0</span>
+                </div>
+            </div>
+            
+            <div id="start-screen" class="screen active">
+                <h1 class="game-title">流光择序</h1>
+                <p class="game-desc">记住光带出现的顺序，依次点击它们</p>
+                <button id="start-btn" class="game-btn">开始游戏</button>
+            </div>
+            
+            <div id="phase-indicator" class="screen">
+                <div class="phase-content">
+                    <h2 id="phase-text">记住顺序...</h2>
+                </div>
+            </div>
+            
+            <div id="game-over-screen" class="screen">
+                <h2 class="result-title">游戏结束</h2>
+                <p class="result-desc">你到达了第 <span id="final-level">1</span> 关</p>
+                <button id="restart-btn" class="game-btn">重新开始</button>
+            </div>
+            
+            <div id="success-screen" class="screen">
+                <h2 class="result-title success">完美！</h2>
+                <p class="result-desc">准备进入下一关</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>

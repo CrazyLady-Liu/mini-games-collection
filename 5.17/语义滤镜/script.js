@@ -353,41 +353,69 @@ function showFeedback(message, type) {
 function checkAnswer() {
     if (gameState.isLocked) return;
     if (gameState.selectedSentences.size === 0) {
-        showFeedback('请至少选择一个句子', 'error');
         return;
     }
     
-    gameState.isLocked = true;
-    
     const condition = gameState.currentCondition;
     const items = document.querySelectorAll('.sentence-item');
-    let correctCount = 0;
-    let wrongCount = 0;
+    let selectedCorrectCount = 0;
+    let selectedWrongCount = 0;
+    let totalCorrectCount = 0;
     
     items.forEach((item, index) => {
         const sentence = gameState.currentSentences[index];
         const isSelected = gameState.selectedSentences.has(index);
         const shouldBeSelected = condition.check(sentence.tags);
         
-        if (isSelected && shouldBeSelected) {
-            item.classList.add('correct');
-            correctCount++;
-        } else if (isSelected && !shouldBeSelected) {
-            item.classList.add('wrong');
-            wrongCount++;
-        } else if (!isSelected && shouldBeSelected) {
-            item.classList.add('wrong');
-            wrongCount++;
+        if (shouldBeSelected) {
+            totalCorrectCount++;
+            if (isSelected) {
+                selectedCorrectCount++;
+            }
+        } else if (isSelected) {
+            selectedWrongCount++;
         }
     });
     
-    const isPerfect = wrongCount === 0 && correctCount > 0;
+    if (selectedWrongCount > 0) {
+        gameState.isLocked = true;
+        gameState.combo = 0;
+        
+        items.forEach((item, index) => {
+            const sentence = gameState.currentSentences[index];
+            const isSelected = gameState.selectedSentences.has(index);
+            const shouldBeSelected = condition.check(sentence.tags);
+            
+            if (isSelected && !shouldBeSelected) {
+                item.classList.add('wrong');
+            }
+        });
+        
+        showFeedback('✗ 选错了！连击中断', 'error');
+        updateStats();
+        
+        setTimeout(() => {
+            gameState.isLocked = false;
+            resetSelection();
+        }, 800);
+        return;
+    }
     
-    if (isPerfect) {
+    if (selectedCorrectCount === totalCorrectCount && totalCorrectCount > 0) {
+        gameState.isLocked = true;
         gameState.combo++;
         if (gameState.combo > gameState.maxCombo) {
             gameState.maxCombo = gameState.combo;
         }
+        
+        items.forEach((item, index) => {
+            const sentence = gameState.currentSentences[index];
+            const shouldBeSelected = condition.check(sentence.tags);
+            if (shouldBeSelected) {
+                item.classList.add('correct');
+            }
+        });
+        
         const baseScore = 100 * gameState.level;
         const comboBonus = Math.floor(baseScore * (gameState.combo - 1) * 0.2);
         const totalScore = baseScore + comboBonus;
@@ -401,20 +429,7 @@ function checkAnswer() {
         setTimeout(() => {
             gameState.level++;
             startLevel();
-        }, 1500);
-    } else {
-        gameState.combo = 0;
-        if (wrongCount > 0) {
-            showFeedback('✗ 有错误选择或漏选，请重试', 'error');
-        } else {
-            showFeedback('✗ 请选择所有符合条件的句子', 'error');
-        }
-        updateStats();
-        
-        setTimeout(() => {
-            gameState.isLocked = false;
-            resetSelection();
-        }, 1500);
+        }, 1000);
     }
 }
 
@@ -461,13 +476,10 @@ function endGame() {
 document.getElementById('startBtn').addEventListener('click', startGame);
 document.getElementById('restartBtn').addEventListener('click', startGame);
 document.getElementById('resetBtn').addEventListener('click', resetSelection);
-document.getElementById('submitBtn').addEventListener('click', checkAnswer);
 
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !document.getElementById('startModal').classList.contains('hidden')) {
         startGame();
-    } else if (e.key === 'Enter' && !gameState.isLocked) {
-        checkAnswer();
     } else if (e.key === 'r' || e.key === 'R') {
         resetSelection();
     }

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>相位同步仪</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>相位同步仪</h1>
+            <div class="level-info">
+                <span>关卡: <span id="level">1</span></span>
+                <span>同步度: <span id="sync-level">0%</span></span>
+            </div>
+        </header>
+
+        <main>
+            <div class="game-area">
+                <canvas id="gameCanvas" width="600" height="600"></canvas>
+            </div>
+
+            <div class="controls">
+                <div class="sliders-container" id="slidersContainer">
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="resetBtn" class="btn reset-btn">重置</button>
+                    <button id="hintBtn" class="btn hint-btn">提示</button>
+                </div>
+            </div>
+        </main>
+
+        <div id="levelComplete" class="overlay hidden">
+            <div class="overlay-content">
+                <h2>🎉 关卡完成！</h2>
+                <p>所有图形已完美同步</p>
+                <p class="next-level-text">准备进入下一关...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
