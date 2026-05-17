@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>层层归序</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>层层归序</h1>
+            <div class="header-right">
+                <div class="level-info">
+                    <span class="level-label">关卡</span>
+                    <span class="level-number" id="levelNumber">1</span>
+                </div>
+                <div class="timer-info" id="timerInfo">
+                    <span class="timer-icon">⏱</span>
+                    <span class="timer-value" id="timerValue">60</span>
+                    <span class="timer-unit">秒</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="game-main">
+            <div class="canvas-wrapper">
+                <canvas id="gameCanvas" width="600" height="600"></canvas>
+            </div>
+
+            <aside class="control-panel">
+                <div class="instruction">
+                    <h3>游戏规则</h3>
+                    <p>点击图形，选择它所属的层级（从外到内：1→N）</p>
+                </div>
+
+                <div class="selected-info" id="selectedInfo">
+                    <div class="info-label">已选择图形：</div>
+                    <div class="info-value" id="selectedShape">无</div>
+                    <div class="info-label">当前标注层级：</div>
+                    <div class="info-value" id="selectedLevel">无</div>
+                </div>
+
+                <div class="layer-selector" id="layerSelector">
+                    <h3>选择层级</h3>
+                    <div class="layer-buttons" id="layerButtons"></div>
+                </div>
+
+                <div class="progress">
+                    <span>完成进度：</span>
+                    <span id="progressText">0 / 0</span>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="submitBtn" class="btn btn-primary" disabled>确认提交</button>
+                    <button id="resetBtn" class="btn btn-secondary">重置本关</button>
+                </div>
+
+                <div class="message" id="message"></div>
+            </aside>
+        </main>
+
+        <div class="modal" id="successModal">
+            <div class="modal-content">
+                <h2>🎉 恭喜通关！</h2>
+                <p>你已正确完成第 <span id="completedLevel">1</span> 关</p>
+                <button id="nextLevelBtn" class="btn btn-primary">进入下一关</button>
+            </div>
+        </div>
+
+        <div class="modal" id="timeoutModal">
+            <div class="modal-content">
+                <h2>⏰ 时间到！</h2>
+                <p>很遗憾，本关挑战超时了</p>
+                <button id="retryBtn" class="btn btn-primary">重新挑战</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

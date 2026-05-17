@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>界域分隔师</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>界域分隔师</h1>
+            <div class="level-info">
+                <span class="level">第 <span id="levelNum">1</span> 关</span>
+                <span class="dots-count">圆点: <span id="dotsCount">3</span></span>
+                <span class="mode" id="modeIndicator">普通模式</span>
+                <span class="order-target hidden" id="orderTarget">当前目标: <span id="targetNum">1</span></span>
+                <span class="status" id="status">绘制封闭区域分隔圆点</span>
+            </div>
+            <div class="mode-switch">
+                <button id="modeBtn" class="btn btn-mode">切换有序模式</button>
+            </div>
+        </header>
+        
+        <div class="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="winOverlay" class="win-overlay hidden">
+                <div class="win-content">
+                    <h2>🎉 通关成功！</h2>
+                    <p>准备进入第 <span id="nextLevel">2</span> 关...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="undoBtn" class="btn btn-undo">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 7v6h6"/>
+                    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+                </svg>
+                撤销
+            </button>
+            <button id="clearBtn" class="btn btn-clear">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+                清空
+            </button>
+            <button id="restartBtn" class="btn btn-restart">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="1 4 1 10 7 10"/>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                </svg>
+                重玩本关
+            </button>
+        </div>
+        
+        <div class="tips">
+            <p>💡 提示：绘制封闭区域将所有圆点隔开，使它们无法互相接触</p>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>

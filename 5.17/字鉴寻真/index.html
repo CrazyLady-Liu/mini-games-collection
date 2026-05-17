@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字鉴寻真</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1 class="game-title">字鉴寻真</h1>
+            
+            <div class="mode-switcher">
+                <button id="modeText" class="mode-btn active">文字识别</button>
+                <button id="modeDraw" class="mode-btn">手绘对称</button>
+            </div>
+            
+            <div class="game-stats">
+                <div class="stat-item">
+                    <span class="stat-label">关卡</span>
+                    <span id="level" class="stat-value">1</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">得分</span>
+                    <span id="score" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">连击</span>
+                    <span id="combo" class="stat-value">0</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="game-main">
+            <div class="difficulty-bar">
+                <div class="difficulty-label">难度</div>
+                <div class="difficulty-stars" id="difficultyStars">☆☆☆☆☆</div>
+            </div>
+
+            <div id="textMode" class="mode-content">
+                <div class="puzzle-area">
+                    <div class="puzzle-char-container" id="puzzleContainer">
+                        <span id="puzzleChar" class="puzzle-char">字</span>
+                    </div>
+                    <div class="puzzle-hint" id="puzzleHint">请输入你看到的文字</div>
+                </div>
+
+                <div class="input-area">
+                    <input 
+                        type="text" 
+                        id="answerInput" 
+                        class="answer-input" 
+                        placeholder="在此输入文字..."
+                        autocomplete="off"
+                        maxlength="5"
+                    >
+                    <button id="submitBtn" class="submit-btn">确认</button>
+                </div>
+            </div>
+
+            <div id="drawMode" class="mode-content hidden">
+                <div class="draw-area">
+                    <div class="canvas-container">
+                        <div class="canvas-label">参考图案</div>
+                        <canvas id="referenceCanvas" class="game-canvas" width="200" height="300"></canvas>
+                        <div class="symmetry-line"></div>
+                    </div>
+                    <div class="canvas-container">
+                        <div class="canvas-label">你的绘制</div>
+                        <canvas id="drawCanvas" class="game-canvas" width="200" height="300"></canvas>
+                    </div>
+                </div>
+                
+                <div class="draw-progress">
+                    <div class="progress-bar">
+                        <div id="symmetryProgress" class="progress-fill"></div>
+                    </div>
+                    <div class="progress-text">
+                        对称度: <span id="symmetryPercent">0</span>%
+                        <span class="progress-target">目标: <span id="targetPercent">70</span>%</span>
+                    </div>
+                </div>
+
+                <div class="draw-controls">
+                    <button id="clearBtn" class="control-btn">清除</button>
+                    <button id="undoBtn" class="control-btn">撤销</button>
+                    <button id="submitDrawBtn" class="submit-btn">提交</button>
+                </div>
+            </div>
+
+            <div class="feedback" id="feedback"></div>
+
+            <div class="controls">
+                <button id="hintBtn" class="control-btn">提示 (<span id="hintCount">3</span>)</button>
+                <button id="skipBtn" class="control-btn">跳过</button>
+            </div>
+        </main>
+
+        <div id="gameOverModal" class="modal hidden">
+            <div class="modal-content">
+                <h2>游戏结束</h2>
+                <p>最终得分: <span id="finalScore">0</span></p>
+                <p>到达关卡: <span id="finalLevel">1</span></p>
+                <button id="restartBtn" class="submit-btn">重新开始</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
