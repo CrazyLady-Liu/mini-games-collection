@@ -229,7 +229,7 @@ body {
 
 .template-classic {
     font-family: 'Times New Roman', serif;
-    padding: 60px;
+    padding: 50px;
     color: #333;
 }
 
@@ -241,14 +241,14 @@ body {
 }
 
 .template-classic .name {
-    font-size: 36px;
+    font-size: 32px;
     font-weight: bold;
     margin-bottom: 8px;
     letter-spacing: 2px;
 }
 
 .template-classic .title {
-    font-size: 18px;
+    font-size: 16px;
     color: #666;
     font-style: italic;
     margin-bottom: 12px;
@@ -257,44 +257,56 @@ body {
 .template-classic .contact {
     font-size: 14px;
     color: #666;
+    line-height: 1.8;
 }
 
 .template-classic .section {
-    margin-bottom: 25px;
+    margin-bottom: 30px;
 }
 
 .template-classic .section-title {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     border-bottom: 1px solid #333;
-    padding-bottom: 5px;
-    margin-bottom: 15px;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
 .template-classic .item {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .template-classic .item-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
 }
 
 .template-classic .item-title {
     font-weight: bold;
+    font-size: 15px;
 }
 
 .template-classic .item-date {
     color: #666;
     font-style: italic;
+    font-size: 13px;
 }
 
 .template-classic .item-subtitle {
     color: #666;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.template-classic .item-desc {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #444;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .template-classic .summary {
@@ -306,6 +318,7 @@ body {
     white-space: pre-wrap;
     margin: 0;
     padding: 0;
+    color: #444;
 }
 
 .template-classic .skills-list {
@@ -349,23 +362,23 @@ body {
 }
 
 .template-modern .profile-img {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.2);
     margin: 0 auto 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 48px;
+    font-size: 40px;
     font-weight: bold;
 }
 
 .template-modern .name {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: bold;
     text-align: center;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
 }
 
 .template-modern .title {
@@ -376,14 +389,14 @@ body {
 }
 
 .template-modern .sidebar-section {
-    margin-bottom: 25px;
+    margin-bottom: 30px;
 }
 
 .template-modern .sidebar-section h3 {
-    font-size: 14px;
+    font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
     padding-bottom: 8px;
     border-bottom: 2px solid rgba(255, 255, 255, 0.3);
 }
@@ -391,12 +404,14 @@ body {
 .template-modern .contact-item {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     font-size: 13px;
+    line-height: 1.8;
 }
 
 .template-modern .contact-item span {
     margin-right: 10px;
+    min-width: 20px;
 }
 
 .template-modern .section {
@@ -404,10 +419,10 @@ body {
 }
 
 .template-modern .section-title {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     color: #667eea;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     padding-bottom: 8px;
     border-bottom: 2px solid #667eea;
     word-break: break-word;
@@ -416,18 +431,18 @@ body {
 }
 
 .template-modern .item {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .template-modern .item-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
 }
 
 .template-modern .item-title {
     font-weight: bold;
-    font-size: 16px;
+    font-size: 15px;
 }
 
 .template-modern .item-date {
@@ -438,13 +453,13 @@ body {
 .template-modern .item-subtitle {
     color: #667eea;
     font-size: 14px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .template-modern .item-desc {
-    color: #666;
+    color: #444;
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.8;
     word-break: break-word;
     overflow-wrap: break-word;
 }
@@ -466,6 +481,8 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    margin: 0;
+    padding: 0;
 }
 
 .template-modern .skill-tag {
@@ -473,6 +490,7 @@ body {
     padding: 6px 14px;
     border-radius: 20px;
     font-size: 13px;
+    line-height: 1.4;
 }
 
 .template-modern .main-content-resume .skills-list .skill-tag {
@@ -483,35 +501,37 @@ body {
 
 .template-minimal {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    padding: 80px;
+    padding: 50px;
     color: #2c3e50;
     max-width: 800px;
     margin: 0 auto;
 }
 
 .template-minimal .resume-header {
-    margin-bottom: 60px;
+    margin-bottom: 40px;
 }
 
 .template-minimal .name {
-    font-size: 48px;
+    font-size: 36px;
     font-weight: 300;
     letter-spacing: -1px;
     margin-bottom: 8px;
 }
 
 .template-minimal .title {
-    font-size: 18px;
+    font-size: 16px;
     color: #7f8c8d;
     font-weight: 400;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .template-minimal .contact {
     display: flex;
-    gap: 24px;
+    gap: 20px;
     font-size: 14px;
     color: #7f8c8d;
+    line-height: 1.8;
+    flex-wrap: wrap;
 }
 
 .template-minimal .contact span {
@@ -521,7 +541,7 @@ body {
 }
 
 .template-minimal .section {
-    margin-bottom: 50px;
+    margin-bottom: 30px;
 }
 
 .template-minimal .section-title {
@@ -534,7 +554,7 @@ body {
 }
 
 .template-minimal .item {
-    margin-bottom: 28px;
+    margin-bottom: 20px;
     padding-left: 20px;
     border-left: 2px solid #ecf0f1;
 }
@@ -543,11 +563,11 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .template-minimal .item-title {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 500;
 }
 
@@ -557,19 +577,21 @@ body {
 }
 
 .template-minimal .item-subtitle {
-    font-size: 15px;
+    font-size: 14px;
     color: #7f8c8d;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .template-minimal .item-desc {
     font-size: 14px;
     color: #5d6d7e;
-    line-height: 1.7;
+    line-height: 1.8;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .template-minimal .summary {
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.8;
     color: #5d6d7e;
     padding-left: 20px;
@@ -584,15 +606,15 @@ body {
 .template-minimal .skills-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     padding-left: 20px;
 }
 
 .template-minimal .skill-tag {
     background: #f8f9fa;
-    padding: 8px 18px;
+    padding: 6px 14px;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 13px;
     color: #2c3e50;
     border: 1px solid #e9ecef;
 }

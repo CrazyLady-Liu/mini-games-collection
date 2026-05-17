@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>静默寻静</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>静默寻静</h1>
+            <div class="game-info">
+                <span class="level">关卡: <span id="level">1</span></span>
+                <span class="score">得分: <span id="score">0</span></span>
+            </div>
+        </header>
+
+        <div class="start-screen" id="startScreen">
+            <div class="start-content">
+                <div class="title-section">
+                    <h2 class="rules-title">🎯 游戏规则</h2>
+                    <div class="rules-content">
+                        <p>所有图标都会随机变化，只有<span class="highlight">一个始终保持静止</span></p>
+                        <p>仔细观察，<span class="highlight">找出那个静止的图标</span>并点击它！</p>
+                    </div>
+                </div>
+                
+                <div class="difficulty-section">
+                    <h3 class="difficulty-title">选择难度</h3>
+                    <div class="difficulty-cards">
+                        <button class="difficulty-card" data-difficulty="easy">
+                            <div class="card-icon">🌱</div>
+                            <div class="card-content">
+                                <div class="card-name">简单模式</div>
+                                <div class="card-desc">图标少，变化幅度大，极易分辨</div>
+                                <div class="card-tag">新手推荐</div>
+                            </div>
+                        </button>
+                        <button class="difficulty-card" data-difficulty="medium">
+                            <div class="card-icon">⚡</div>
+                            <div class="card-content">
+                                <div class="card-name">进阶模式</div>
+                                <div class="card-desc">图标增多，变化频率加快，干扰性强</div>
+                                <div class="card-tag">适度挑战</div>
+                            </div>
+                        </button>
+                        <button class="difficulty-card" data-difficulty="hard">
+                            <div class="card-icon">🔥</div>
+                            <div class="card-content">
+                                <div class="card-name">挑战模式</div>
+                                <div class="card-desc">图标密集，变化样式接近，考验专注力</div>
+                                <div class="card-tag">高手专属</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-area" id="gameArea">
+            <div class="icons-grid" id="iconsGrid"></div>
+            <div class="message" id="message"></div>
+        </div>
+
+        <div class="success-modal" id="successModal">
+            <div class="modal-content">
+                <h2>🎉 恭喜过关！</h2>
+                <p id="successMessage">准备进入下一关...</p>
+            </div>
+        </div>
+
+        <div class="error-modal" id="errorModal">
+            <div class="modal-content error">
+                <h2>❌ 选错了！</h2>
+                <p>再仔细观察一下，找出真正静止的图标</p>
+                <button id="retryBtn" class="retry-btn">重新选择</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

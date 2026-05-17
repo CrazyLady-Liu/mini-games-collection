@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>区域禁界</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    color: #fff;
+  }
+  .game-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .game-title {
+    font-size: 32px;
+    font-weight: bold;
+    background: linear-gradient(90deg, #e94560, #0f3460);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+  .game-info {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .info-item {
+    background: rgba(255,255,255,0.1);
+    padding: 8px 16px;
+    border-radius: 20px;
+  }
+  .info-item span {
+    color: #e94560;
+    font-weight: bold;
+    margin-left: 5px;
+  }
+  .game-container {
+    display: flex;
+    gap: 20px;
+    background: rgba(255,255,255,0.05);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .canvas-wrapper {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+  #gameCanvas {
+    display: block;
+    cursor: crosshair;
+  }
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 150px;
+  }
+  .control-btn {
+    padding: 12px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    color: #fff;
+  }
+  .btn-undo {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+  }
+  .btn-clear {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+  }
+  .btn-submit {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+  }
+  .btn-undo:hover, .btn-clear:hover, .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  }
+  .btn-undo:disabled, .btn-clear:disabled, .btn-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .status-panel {
+    background: rgba(0,0,0,0.3);
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  .status-row {
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .status-row:last-child {
+    margin-bottom: 0;
+  }
+  .status-label {
+    color: #aaa;
+  }
+  .status-value {
+    font-weight: bold;
+  }
+  .status-value.pass { color: #2ecc71; }
+  .status-value.fail { color: #e74c3c; }
+  .instruction {
+    margin-top: 20px;
+    text-align: center;
+    color: #aaa;
+    font-size: 14px;
+    max-width: 600px;
+  }
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .modal.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .modal-content {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    padding: 40px;
+    border-radius: 16px;
+    text-align: center;
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+    border: 2px solid #e94560;
+  }
+  .modal.show .modal-content {
+    transform: scale(1);
+  }
+  .modal-title {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: #e94560;
+  }
+  .modal-text {
+    font-size: 18px;
+    margin-bottom: 30px;
+    color: #fff;
+  }
+  .modal-btn {
+    padding: 12px 40px;
+    font-size: 18px;
+    background: linear-gradient(135deg, #e94560, #0f3460);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+  .modal-btn:hover {
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+  <div class="game-header">
+    <h1 class="game-title">区域禁界</h1>
+    <div class="game-info">
+      <div class="info-item">关卡<span id="levelDisplay">1</span></div>
+      <div class="info-item">红点数量<span id="dotCountDisplay">0</span></div>
+      <div class="info-item">目标面积<span id="targetAreaDisplay">0%</span></div>
+    </div>
+  </div>
+
+  <div class="game-container">
+    <div class="canvas-wrapper">
+      <canvas id="gameCanvas" width="600" height="500"></canvas>
+    </div>
+    <div class="controls">
+      <button class="control-btn btn-undo" id="undoBtn">撤销上一笔</button>
+      <button class="control-btn btn-clear" id="clearBtn">清空画布</button>
+      <button class="control-btn btn-submit" id="submitBtn">检测区域</button>
+      <div class="status-panel">
+        <div class="status-row">
+          <span class="status-label">当前面积:</span>
+          <span class="status-value" id="currentArea">0%</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label">避开红点:</span>
+          <span class="status-value" id="dotStatus">-</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label">是否闭合:</span>
+          <span class="status-value" id="closeStatus">-</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="instruction">
+    在画布上绘制闭合区域，避开所有红色标记点，且面积达到目标值即可过关。
+    拖动鼠标绘制，松开自动闭合路径。
+  </p>
+
+  <div class="modal" id="successModal">
+    <div class="modal-content">
+      <h2 class="modal-title">🎯 挑战成功！</h2>
+      <p class="modal-text" id="successText">恭喜完成第 1 关！</p>
+    </div>
+  </div>
+
+  <div class="modal" id="completeModal">
+    <div class="modal-content">
+      <h2 class="modal-title">🏆 全部通关！</h2>
+      <p class="modal-text">恭喜你完成了所有关卡！</p>
+      <button class="modal-btn" id="restartBtn">重新开始</button>
+    </div>
+  </div>
+
+  <div class="modal" id="failModal">
+    <div class="modal-content">
+      <h2 class="modal-title">❌ 挑战失败</h2>
+      <p class="modal-text" id="failText">请重新绘制区域</p>
+      <button class="modal-btn" id="retryBtn">重新尝试</button>
+    </div>
+  </div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const levels = [
+  { dots: 5, targetArea: 30, dotRadius: 15 },
+  { dots: 8, targetArea: 35, dotRadius: 14 },
+  { dots: 12, targetArea: 40, dotRadius: 13 },
+  { dots: 15, targetArea: 45, dotRadius: 12 },
+  { dots: 20, targetArea: 50, dotRadius: 11 },
+];
+
+let currentLevel = 0;
+let redDots = [];
+let paths = [];
+let currentPath = [];
+let isDrawing = false;
+let dotRadius = 15;
+let isTransitioning = false;
+
+const undoBtn = document.getElementById('undoBtn');
+const clearBtn = document.getElementById('clearBtn');
+const submitBtn = document.getElementById('submitBtn');
+const successModal = document.getElementById('successModal');
+const failModal = document.getElementById('failModal');
+const completeModal = document.getElementById('completeModal');
+
+const retryBtn = document.getElementById('retryBtn');
+const restartBtn = document.getElementById('restartBtn');
+
+function initLevel() {
+  const level = levels[currentLevel];
+  dotRadius = level.dotRadius;
+  redDots = [];
+  paths = [];
+  currentPath = [];
+  
+  for (let i = 0; i < level.dots; i++) {
+    let dot, valid;
+    let attempts = 0;
+    do {
+      dot = {
+        x: Math.random() * (canvas.width - 80) + 40,
+        y: Math.random() * (canvas.height - 80) + 40
+      };
+      valid = true;
+      for (const existing of redDots) {
+        const dist = Math.hypot(dot.x - existing.x, dot.y - existing.y);
+        if (dist < dotRadius * 3) {
+          valid = false;
+          break;
+        }
+      }
+      attempts++;
+    } while (!valid && attempts < 100);
+    redDots.push(dot);
+  }
+  
+  document.getElementById('levelDisplay').textContent = currentLevel + 1;
+  document.getElementById('dotCountDisplay').textContent = level.dots;
+  document.getElementById('targetAreaDisplay').textContent = level.targetArea + '%';
+  
+  updateUI();
+  draw();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.fillStyle = '#f8f9fa';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.strokeStyle = '#e9ecef';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < canvas.width; x += 30) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+  for (let y = 0; y < canvas.height; y += 30) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+  
+  for (const dot of redDots) {
+    const gradient = ctx.createRadialGradient(dot.x, dot.y, 0, dot.x, dot.y, dotRadius * 1.5);
+    gradient.addColorStop(0, 'rgba(233, 69, 96, 0.3)');
+    gradient.addColorStop(1, 'rgba(233, 69, 96, 0)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(dot.x, dot.y, dotRadius * 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#e94560';
+    ctx.beginPath();
+    ctx.arc(dot.x, dot.y, dotRadius, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(dot.x - 3, dot.y - 3, dotRadius * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  for (let i = 0; i < paths.length; i++) {
+    drawPath(paths[i], 'rgba(46, 204, 113, 0.3)', 'rgba(46, 204, 113, 0.6)');
+  }
+  
+  if (currentPath.length > 0) {
+    drawPath(currentPath, 'rgba(52, 152, 219, 0.2)', 'rgba(52, 152, 219, 0.8)');
+  }
+}
+
+function drawPath(path, fillColor, strokeColor) {
+  if (path.length < 3) return;
+  
+  ctx.fillStyle = fillColor;
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  
+  ctx.beginPath();
+  ctx.moveTo(path[0].x, path[0].y);
+  for (let i = 1; i < path.length; i++) {
+    ctx.lineTo(path[i].x, path[i].y);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+}
+
+function pointInPolygon(point, polygon) {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].x, yi = polygon[i].y;
+    const xj = polygon[j].x, yj = polygon[j].y;
+    
+    if (((yi > point.y) !== (yj > point.y)) &&
+        (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi)) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function calculatePolygonArea(polygon) {
+  let area = 0;
+  for (let i = 0; i < polygon.length; i++) {
+    const j = (i + 1) % polygon.length;
+    area += polygon[i].x * polygon[j].y;
+    area -= polygon[j].x * polygon[i].y;
+  }
+  return Math.abs(area / 2);
+}
+
+function checkDotsInPath(path) {
+  for (const dot of redDots) {
+    if (pointInPolygon(dot, path)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function updateUI() {
+  const totalArea = canvas.width * canvas.height;
+  let coveredArea = 0;
+  
+  for (const path of paths) {
+    coveredArea += calculatePolygonArea(path);
+  }
+  if (currentPath.length >= 3) {
+    coveredArea += calculatePolygonArea(currentPath);
+  }
+  
+  const areaPercent = Math.min(100, (coveredArea / totalArea * 100)).toFixed(1);
+  document.getElementById('currentArea').textContent = areaPercent + '%';
+  
+  let allDotsSafe = true;
+  let allClosed = paths.length > 0;
+  
+  for (const path of paths) {
+    if (!checkDotsInPath(path)) {
+      allDotsSafe = false;
+    }
+  }
+  
+  document.getElementById('dotStatus').textContent = allDotsSafe ? '✓ 安全' : '✗ 触碰红点';
+  document.getElementById('dotStatus').className = 'status-value ' + (allDotsSafe ? 'pass' : 'fail');
+  
+  document.getElementById('closeStatus').textContent = allClosed ? '✓ 已闭合' : '-';
+  document.getElementById('closeStatus').className = 'status-value ' + (allClosed ? 'pass' : 'fail');
+  
+  undoBtn.disabled = paths.length === 0;
+  clearBtn.disabled = paths.length === 0;
+  submitBtn.disabled = paths.length === 0;
+}
+
+function checkLevelComplete() {
+  const level = levels[currentLevel];
+  const totalArea = canvas.width * canvas.height;
+  let coveredArea = 0;
+  
+  for (const path of paths) {
+    coveredArea += calculatePolygonArea(path);
+  }
+  
+  const areaPercent = coveredArea / totalArea * 100;
+  
+  if (areaPercent < level.targetArea) {
+    return { pass: false, reason: `面积不足！当前 ${areaPercent.toFixed(1)}%，需要 ${level.targetArea}%` };
+  }
+  
+  for (const path of paths) {
+    if (!checkDotsInPath(path)) {
+      return { pass: false, reason: '区域触碰了红色标记点！' };
+    }
+  }
+  
+  return { pass: true };
+}
+
+canvas.addEventListener('mousedown', (e) => {
+  if (isTransitioning) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  
+  isDrawing = true;
+  currentPath = [{ x, y }];
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (!isDrawing) return;
+  
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  
+  const last = currentPath[currentPath.length - 1];
+  if (Math.hypot(x - last.x, y - last.y) > 5) {
+    currentPath.push({ x, y });
+    draw();
+    updateUI();
+  }
+});
+
+canvas.addEventListener('mouseup', () => {
+  if (!isDrawing) return;
+  isDrawing = false;
+  
+  if (currentPath.length >= 3) {
+    const first = currentPath[0];
+    const last = currentPath[currentPath.length - 1];
+    if (Math.hypot(first.x - last.x, first.y - last.y) > 20) {
+      currentPath.push({ x: first.x, y: first.y });
+    }
+    paths.push([...currentPath]);
+  }
+  currentPath = [];
+  draw();
+  updateUI();
+  
+  const result = checkLevelComplete();
+  if (result.pass) {
+    showSuccess();
+  }
+});
+
+canvas.addEventListener('mouseleave', () => {
+  if (isDrawing) {
+    isDrawing = false;
+    if (currentPath.length >= 3) {
+      const first = currentPath[0];
+      const last = currentPath[currentPath.length - 1];
+      if (Math.hypot(first.x - last.x, first.y - last.y) > 20) {
+        currentPath.push({ x: first.x, y: first.y });
+      }
+      paths.push([...currentPath]);
+    }
+    currentPath = [];
+    draw();
+    updateUI();
+  }
+});
+
+undoBtn.addEventListener('click', () => {
+  if (isTransitioning) return;
+  if (paths.length > 0) {
+    paths.pop();
+    draw();
+    updateUI();
+  }
+});
+
+clearBtn.addEventListener('click', () => {
+  if (isTransitioning) return;
+  paths = [];
+  currentPath = [];
+  draw();
+  updateUI();
+});
+
+submitBtn.addEventListener('click', () => {
+  if (isTransitioning) return;
+  const result = checkLevelComplete();
+  if (result.pass) {
+    showSuccess();
+  } else {
+    showFail(result.reason);
+  }
+});
+
+function showSuccess() {
+  isTransitioning = true;
+  document.getElementById('successText').textContent = `恭喜完成第 ${currentLevel + 1} 关！`;
+  successModal.classList.add('show');
+  
+  setTimeout(() => {
+    successModal.classList.remove('show');
+    currentLevel++;
+    if (currentLevel >= levels.length) {
+      completeModal.classList.add('show');
+    } else {
+      initLevel();
+    }
+    isTransitioning = false;
+  }, 1000);
+}
+
+function showFail(reason) {
+  document.getElementById('failText').textContent = reason;
+  failModal.classList.add('show');
+}
+
+retryBtn.addEventListener('click', () => {
+  failModal.classList.remove('show');
+  paths = [];
+  draw();
+  updateUI();
+});
+
+restartBtn.addEventListener('click', () => {
+  completeModal.classList.remove('show');
+  currentLevel = 0;
+  initLevel();
+});
+
+initLevel();
+</script>
+</body>
+</html>

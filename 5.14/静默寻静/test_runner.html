@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>静默寻静 - 自动化测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .test-controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .progress-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .test-log {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 500px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+        }
+        .log-info { color: #64B5F6; }
+        .log-success { color: #81C784; }
+        .log-warning { color: #FFB74D; }
+        .log-error { color: #E57373; }
+        .log-round { color: #BA68C8; font-weight: bold; margin-top: 10px; }
+        
+        .summary {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .summary-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+        .summary-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .summary-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        .pass { color: #4CAF50 !important; }
+        .fail { color: #f44336 !important; }
+        .partial { color: #FF9800 !important; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔍 静默寻静 - 自动化测试</h1>
+        <p style="text-align: center; color: #666;">连续执行 7 轮游戏，验证游戏逻辑正确性</p>
+        
+        <div class="test-controls">
+            <button id="startTestBtn" onclick="startTest()">▶ 开始测试</button>
+            <button id="openGameBtn" onclick="window.open('index.html', '_blank')">🎮 打开游戏</button>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="test-log" id="testLog">
+            <div class="log-entry log-info">等待测试开始...</div>
+        </div>
+        
+        <div class="summary" id="summary" style="display: none;">
+            <h3>📊 测试结果汇总</h3>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-value" id="totalRounds">0</div>
+                    <div class="summary-label">总轮数</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value pass" id="passCount">0</div>
+                    <div class="summary-label">✅ 通过</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value partial" id="partialCount">0</div>
+                    <div class="summary-label">⚠️ 部分通过</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value fail" id="failCount">0</div>
+                    <div class="summary-label">❌ 失败</div>
+                </div>
+            </div>
+            <div id="finalResult" style="text-align: center; font-size: 1.2rem; font-weight: bold;"></div>
+        </div>
+    </div>
+
+    <script>
+        const testResults = [];
+        let currentRound = 0;
+        let isRunning = false;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('testLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span style="opacity: 0.6;">[${timestamp}]</span> ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateProgress(percent) {
+            document.getElementById('progressFill').style.width = `${percent}%`;
+        }
+
+        function waitForCondition(condition, timeout = 5000) {
+            return new Promise((resolve, reject) => {
+                const startTime = Date.now();
+                const interval = setInterval(() => {
+                    if (condition()) {
+                        clearInterval(interval);
+                        resolve();
+                    } else if (Date.now() - startTime > timeout) {
+                        clearInterval(interval);
+                        reject(new Error('Timeout'));
+                    }
+                }, 100);
+            });
+        }
+
+        async function runRound(roundNum, gameWindow) {
+            return new Promise(async (resolve) => {
+                const result = { round: roundNum, status: 'PASS', details: {} };
+                
+                try {
+                    log(`开始第 ${roundNum} 轮测试...`, 'round');
+                    
+                    await waitForCondition(() => 
+                        gameWindow.gameState && 
+                        gameWindow.gameState.icons && 
+                        gameWindow.gameState.icons.length > 0, 3000);
+                    
+                    const state = gameWindow.gameState;
+                    const staticIndex = state.staticIndex;
+                    const iconCount = state.icons.length;
+                    const level = state.level;
+                    const initialScore = state.score;
+                    
+                    log(`关卡: ${level} | 图标数量: ${iconCount} | 静止索引: ${staticIndex} | 当前得分: ${initialScore}`, 'info');
+                    
+                    const iconsGrid = gameWindow.document.getElementById('iconsGrid');
+                    const iconElements = iconsGrid.querySelectorAll('.icon-item');
+                    
+                    if (iconElements.length !== iconCount) {
+                        result.status = 'FAIL';
+                        result.reason = `图标数量不匹配: 渲染${iconElements.length}个, 预期${iconCount}个`;
+                        log(`❌ ${result.reason}`, 'error');
+                        resolve(result);
+                        return;
+                    }
+                    log(`✓ 图标渲染正确 (${iconCount}个)`, 'success');
+                    
+                    await waitForCondition(() => gameWindow.gameState.isPlaying === true, 15000);
+                    log(`✓ 动画完成，进入可点击状态`, 'success');
+                    
+                    const staticIcon = state.icons[staticIndex];
+                    const isStaticUnchanged = 
+                        staticIcon.scale === 1 && 
+                        staticIcon.rotation === 0 && 
+                        staticIcon.opacity === 1;
+                    
+                    if (!isStaticUnchanged) {
+                        result.status = 'PARTIAL';
+                        result.issues = result.issues || [];
+                        result.issues.push('静止图标属性发生变化');
+                        log(`⚠️  静止图标属性检查: 缩放=${staticIcon.scale}, 旋转=${staticIcon.rotation}, 透明度=${staticIcon.opacity}`, 'warning');
+                    } else {
+                        log(`✓ 静止图标保持初始状态`, 'success');
+                    }
+                    
+                    const dynamicChanged = state.icons
+                        .filter((_, i) => i !== staticIndex)
+                        .some(icon => icon.color !== icon.originalColor);
+                    
+                    if (!dynamicChanged) {
+                        result.status = 'PARTIAL';
+                        result.issues = result.issues || [];
+                        result.issues.push('动态图标未发生变化');
+                        log(`⚠️  动态图标未检测到颜色变化`, 'warning');
+                    } else {
+                        log(`✓ 动态图标已发生变化`, 'success');
+                    }
+                    
+                    log(`点击静止图标 (索引: ${staticIndex})...`, 'info');
+                    iconElements[staticIndex].click();
+                    
+                    await new Promise(r => setTimeout(r, 300));
+                    
+                    const successModal = gameWindow.document.getElementById('successModal');
+                    const isSuccessVisible = successModal.style.display === 'flex';
+                    
+                    if (!isSuccessVisible) {
+                        result.status = 'FAIL';
+                        result.reason = '点击正确图标后未显示成功弹窗';
+                        log(`❌ ${result.reason}`, 'error');
+                        resolve(result);
+                        return;
+                    }
+                    log(`✓ 成功弹窗已显示`, 'success');
+                    
+                    await new Promise(r => setTimeout(r, 1600));
+                    
+                    const newLevel = gameWindow.gameState.level;
+                    const newScore = gameWindow.gameState.score;
+                    const config = gameWindow.gameState.currentConfig;
+                    const expectedScore = initialScore + Math.floor(100 * level * config.scoreMultiplier);
+                    
+                    if (newLevel !== level + 1) {
+                        result.status = 'PARTIAL';
+                        result.issues = result.issues || [];
+                        result.issues.push(`关卡未跳转: 预期${level + 1}, 实际${newLevel}`);
+                        log(`⚠️  关卡跳转检查: 预期 ${level + 1}, 实际 ${newLevel}`, 'warning');
+                    } else {
+                        log(`✓ 关卡正确跳转: ${level} → ${newLevel}`, 'success');
+                    }
+                    
+                    if (newScore !== expectedScore) {
+                        result.status = 'PARTIAL';
+                        result.issues = result.issues || [];
+                        result.issues.push(`得分计算错误: 预期${expectedScore}, 实际${newScore}`);
+                        log(`⚠️  得分计算: 预期 ${expectedScore}, 实际 ${newScore}`, 'warning');
+                    } else {
+                        log(`✓ 得分正确: ${initialScore} + ${Math.floor(100 * level * config.scoreMultiplier)} = ${newScore}`, 'success');
+                    }
+                    
+                    result.level = level;
+                    result.iconCount = iconCount;
+                    result.staticIndex = staticIndex;
+                    result.score = newScore;
+                    
+                    if (result.status === 'PASS') {
+                        log(`✅ 第 ${roundNum} 轮测试通过！`, 'success');
+                    } else if (result.status === 'PARTIAL') {
+                        log(`⚠️  第 ${roundNum} 轮部分通过: ${result.issues.join(', ')}`, 'warning');
+                    }
+                    
+                } catch (error) {
+                    result.status = 'FAIL';
+                    result.reason = `测试异常: ${error.message}`;
+                    log(`❌ 第 ${roundNum} 轮测试异常: ${error.message}`, 'error');
+                }
+                
+                resolve(result);
+            });
+        }
+
+        async function startTest() {
+            if (isRunning) return;
+            isRunning = true;
+            
+            document.getElementById('startTestBtn').disabled = true;
+            document.getElementById('testLog').innerHTML = '';
+            document.getElementById('summary').style.display = 'none';
+            testResults.length = 0;
+            currentRound = 0;
+            updateProgress(0);
+            
+            log('=== 静默寻静自动化测试开始 ===', 'info');
+            log('测试目标: 连续执行7轮游戏，验证静态图标识别、点击判定、关卡跳转、得分计算', 'info');
+            
+            const gameWindow = window.open('index.html', 'gameWindow', 'width=800,height=700');
+            
+            if (!gameWindow) {
+                log('❌ 无法打开游戏窗口，请检查浏览器弹窗设置', 'error');
+                isRunning = false;
+                document.getElementById('startTestBtn').disabled = false;
+                return;
+            }
+            
+            try {
+                await waitForCondition(() => 
+                    typeof gameWindow.startGame === 'function' && 
+                    gameWindow.document.readyState === 'complete', 5000);
+                
+                log('✓ 游戏页面加载完成', 'success');
+                
+                log('选择简单难度开始游戏...', 'info');
+                gameWindow.startGame('easy');
+                
+                for (let i = 1; i <= 7; i++) {
+                    currentRound = i;
+                    const result = await runRound(i, gameWindow);
+                    testResults.push(result);
+                    updateProgress((i / 7) * 100);
+                    
+                    if (result.status === 'FAIL' && result.reason && result.reason.includes('未显示成功弹窗')) {
+                        log('❌ 关键测试失败，终止测试', 'error');
+                        break;
+                    }
+                }
+                
+                showSummary();
+                
+            } catch (error) {
+                log(`❌ 测试启动失败: ${error.message}`, 'error');
+            }
+            
+            isRunning = false;
+            document.getElementById('startTestBtn').disabled = false;
+        }
+
+        function showSummary() {
+            const passCount = testResults.filter(r => r.status === 'PASS').length;
+            const partialCount = testResults.filter(r => r.status === 'PARTIAL').length;
+            const failCount = testResults.filter(r => r.status === 'FAIL').length;
+            
+            document.getElementById('totalRounds').textContent = testResults.length;
+            document.getElementById('passCount').textContent = passCount;
+            document.getElementById('partialCount').textContent = partialCount;
+            document.getElementById('failCount').textContent = failCount;
+            
+            const finalResult = document.getElementById('finalResult');
+            if (failCount === 0 && partialCount === 0 && passCount === 7) {
+                finalResult.innerHTML = '🎉 <span class="pass">所有测试完美通过！</span>';
+            } else if (failCount === 0) {
+                finalResult.innerHTML = '✅ <span class="pass">测试通过（存在部分警告）</span>';
+            } else {
+                finalResult.innerHTML = '❌ <span class="fail">存在测试失败</span>';
+            }
+            
+            document.getElementById('summary').style.display = 'block';
+            
+            log('', 'info');
+            log('=== 测试结果汇总 ===', 'round');
+            testResults.forEach((r, i) => {
+                if (r.status === 'PASS') {
+                    log(`第${i+1}轮: ✅ 通过 - 关卡${r.level}, ${r.iconCount}个图标, 得分${r.score}`, 'success');
+                } else if (r.status === 'PARTIAL') {
+                    log(`第${i+1}轮: ⚠️  部分通过 - ${r.issues ? r.issues.join(', ') : '未知问题'}`, 'warning');
+                } else {
+                    log(`第${i+1}轮: ❌ 失败 - ${r.reason || '未知原因'}`, 'error');
+                }
+            });
+            
+            log(`总计: ${passCount}通过, ${partialCount}部分通过, ${failCount}失败`, 'info');
+        }
+    </script>
+</body>
+</html>

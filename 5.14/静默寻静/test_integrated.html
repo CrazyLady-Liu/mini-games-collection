@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>静默寻静 - 集成测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .test-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .game-section, .test-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .game-section h2, .test-section h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .game-header h1 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 1rem;
+        }
+
+        .game-info span {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .start-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+        }
+
+        .start-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .start-content h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .start-content p {
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .difficulty-select {
+            margin-top: 20px;
+        }
+
+        .difficulty-select h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 90px;
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .difficulty-btn[data-difficulty="easy"]:hover {
+            border-color: #4CAF50;
+            background: #e8f5e9;
+        }
+
+        .diff-icon { font-size: 1.5rem; }
+        .diff-name { font-size: 0.95rem; font-weight: bold; color: #333; }
+        .diff-desc { font-size: 0.75rem; color: #666; }
+
+        .game-area {
+            display: none;
+        }
+
+        .icons-grid {
+            display: grid;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            min-height: 280px;
+            padding: 15px;
+        }
+
+        .icon-item {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            background: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            user-select: none;
+        }
+
+        .icon-item:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .icon-item.clicked { pointer-events: none; }
+        .icon-item.correct {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            animation: correctPulse 0.5s ease-in-out;
+        }
+        .icon-item.wrong {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            animation: wrongShake 0.5s ease-in-out;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1rem;
+            color: #666;
+            min-height: 25px;
+        }
+
+        .success-modal, .error-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px 50px;
+            border-radius: 15px;
+            text-align: center;
+            animation: modalIn 0.3s ease-out;
+        }
+
+        .modal-content.error { border: 3px solid #eb3349; }
+        .modal-content h2 { font-size: 1.5rem; margin-bottom: 10px; color: #333; }
+        .modal-content p { font-size: 1rem; color: #666; margin-bottom: 15px; }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            font-size: 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover { transform: translateY(-2px); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .test-log {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            max-height: 450px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .log-entry { margin-bottom: 4px; }
+        .log-info { color: #64B5F6; }
+        .log-success { color: #81C784; }
+        .log-warning { color: #FFB74D; }
+        .log-error { color: #E57373; }
+        .log-round { color: #BA68C8; font-weight: bold; margin-top: 8px; }
+
+        .summary {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .summary-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .pass { color: #4CAF50 !important; }
+        .fail { color: #f44336 !important; }
+        .partial { color: #FF9800 !important; }
+
+        .result-table {
+            margin-top: 15px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .result-row {
+            display: grid;
+            grid-template-columns: 60px 80px 80px 80px 1fr;
+            gap: 8px;
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .result-row.header {
+            font-weight: bold;
+            background: #f5f5f5;
+        }
+
+        @media (max-width: 1000px) {
+            .test-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-wrapper">
+        <div class="game-section">
+            <h2>🎮 游戏界面</h2>
+            <div class="game-container">
+                <header class="game-header">
+                    <h1>静默寻静</h1>
+                    <div class="game-info">
+                        <span class="level">关卡: <span id="level">1</span></span>
+                        <span class="score">得分: <span id="score">0</span></span>
+                    </div>
+                </header>
+
+                <div class="start-screen" id="startScreen">
+                    <div class="start-content">
+                        <h2>游戏规则</h2>
+                        <p>所有图标都会随机变化，只有一个始终保持静止</p>
+                        <p>找出那个静止的图标并点击它！</p>
+                        
+                        <div class="difficulty-select">
+                            <h3>选择难度</h3>
+                            <div class="difficulty-buttons">
+                                <button class="difficulty-btn" data-difficulty="easy">
+                                    <span class="diff-icon">🌱</span>
+                                    <span class="diff-name">简单</span>
+                                    <span class="diff-desc">图标少，变化明显</span>
+                                </button>
+                                <button class="difficulty-btn" data-difficulty="medium">
+                                    <span class="diff-icon">⚡</span>
+                                    <span class="diff-name">进阶</span>
+                                    <span class="diff-desc">图标增多，变化加快</span>
+                                </button>
+                                <button class="difficulty-btn" data-difficulty="hard">
+                                    <span class="diff-icon">🔥</span>
+                                    <span class="diff-name">挑战</span>
+                                    <span class="diff-desc">图标密集，考验专注</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-area" id="gameArea">
+                    <div class="icons-grid" id="iconsGrid"></div>
+                    <div class="message" id="message"></div>
+                </div>
+
+                <div class="success-modal" id="successModal">
+                    <div class="modal-content">
+                        <h2>🎉 恭喜过关！</h2>
+                        <p id="successMessage">准备进入下一关...</p>
+                    </div>
+                </div>
+
+                <div class="error-modal" id="errorModal">
+                    <div class="modal-content error">
+                        <h2>❌ 选错了！</h2>
+                        <p>再仔细观察一下，找出真正静止的图标</p>
+                        <button id="retryBtn">重新选择</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 自动化测试</h2>
+            <div class="test-controls">
+                <button id="startTestBtn" onclick="startTest()">▶ 开始7轮测试</button>
+                <button onclick="resetGame()">🔄 重置游戏</button>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="test-log" id="testLog">
+                <div class="log-entry log-info">等待测试开始...</div>
+            </div>
+            
+            <div class="summary" id="summary" style="display: none;">
+                <h3 style="margin-bottom: 10px;">📊 测试结果汇总</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-value" id="totalRounds">0</div>
+                        <div class="summary-label">总轮数</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value pass" id="passCount">0</div>
+                        <div class="summary-label">✅ 通过</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value partial" id="partialCount">0</div>
+                        <div class="summary-label">⚠️ 部分</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value fail" id="failCount">0</div>
+                        <div class="summary-label">❌ 失败</div>
+                    </div>
+                </div>
+                <div id="finalResult" style="text-align: center; font-size: 1.1rem; font-weight: bold;"></div>
+                
+                <div class="result-table" id="resultTable">
+                    <div class="result-row header">
+                        <div>轮次</div>
+                        <div>关卡</div>
+                        <div>图标数</div>
+                        <div>得分</div>
+                        <div>结果</div>
+                    </div>
+                    <div id="resultRows"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 游戏逻辑 ====================
+        const iconCategories = {
+            shapes: ['●', '■', '▲', '◆', '★', '♥', '♦', '♣', '♠', '◎', '◉', '⬡', '⬢', '◈', '◊'],
+            emojis: ['😀', '😎', '🤔', '😊', '🥳', '😇', '🤗', '😋', '🤩', '😜', '🥰', '😌', '🙂', '😄', '😉'],
+            symbols: ['✓', '✕', '✦', '✧', '✩', '✪', '✫', '✬', '✭', '✮', '✯', '✰', '❀', '❁', '❂'],
+            arrows: ['↑', '↓', '←', '→', '↗', '↘', '↙', '↖', '⇑', '⇓', '⇐', '⇒', '↕', '↔', '↻'],
+            math: ['＋', '－', '×', '÷', '＝', '≠', '≈', '＜', '＞', '≤', '≥', '∞', 'π', '√', '∑'],
+            weather: ['☀', '☁', '☂', '☃', '⚡', '❄', '🌈', '🌙', '⭐', '🔥', '💧', '🌊', '🍃', '🌸', '🌺']
+        };
+
+        const colors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+            '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
+            '#F8B500', '#FF69B4', '#00CED1', '#FF7F50', '#9370DB'
+        ];
+
+        const difficultyConfig = {
+            easy: {
+                iconCount: { min: 4, max: 5 },
+                changeInterval: 1000,
+                changeDuration: 400,
+                maxRounds: 3,
+                scaleRange: { min: 0.6, max: 1.4 },
+                rotationRange: 60,
+                opacityRange: { min: 0.4, max: 1 },
+                colorChange: true,
+                iconSize: 80,
+                fontSize: '2.5rem',
+                name: '简单',
+                scoreMultiplier: 1
+            },
+            medium: {
+                iconCount: { min: 6, max: 7 },
+                changeInterval: 700,
+                changeDuration: 250,
+                maxRounds: 5,
+                scaleRange: { min: 0.75, max: 1.25 },
+                rotationRange: 40,
+                opacityRange: { min: 0.5, max: 1 },
+                colorChange: true,
+                iconSize: 75,
+                fontSize: '2.2rem',
+                name: '进阶',
+                scoreMultiplier: 1.5
+            },
+            hard: {
+                iconCount: { min: 8, max: 9 },
+                changeInterval: 500,
+                changeDuration: 180,
+                maxRounds: 6,
+                scaleRange: { min: 0.85, max: 1.15 },
+                rotationRange: 25,
+                opacityRange: { min: 0.65, max: 1 },
+                colorChange: true,
+                iconSize: 65,
+                fontSize: '1.8rem',
+                name: '挑战',
+                scoreMultiplier: 2
+            }
+        };
+
+        const gameState = {
+            level: 1,
+            score: 0,
+            icons: [],
+            staticIndex: -1,
+            isPlaying: false,
+            animationIntervals: [],
+            changeRounds: 0,
+            maxRounds: 5,
+            difficulty: 'easy',
+            currentConfig: null
+        };
+
+        const startScreen = document.getElementById('startScreen');
+        const gameArea = document.getElementById('gameArea');
+        const iconsGrid = document.getElementById('iconsGrid');
+        const levelDisplay = document.getElementById('level');
+        const scoreDisplay = document.getElementById('score');
+        const message = document.getElementById('message');
+        const successModal = document.getElementById('successModal');
+        const errorModal = document.getElementById('errorModal');
+        const retryBtn = document.getElementById('retryBtn');
+        const successMessage = document.getElementById('successMessage');
+
+        function getRandomItem(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function shuffleArray(arr) {
+            const newArr = [...arr];
+            for (let i = newArr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+            }
+            return newArr;
+        }
+
+        function getIconCount() {
+            const config = gameState.currentConfig;
+            const baseCount = config.iconCount.min;
+            const extraCount = Math.min(Math.floor(gameState.level / 3), config.iconCount.max - config.iconCount.min);
+            return baseCount + extraCount;
+        }
+
+        function getGridColumns(count) {
+            if (count <= 4) return 2;
+            if (count <= 6) return 3;
+            if (count <= 8) return 4;
+            return 3;
+        }
+
+        function generateIcons() {
+            const categoryKeys = Object.keys(iconCategories);
+            const categoryKey = getRandomItem(categoryKeys);
+            const category = iconCategories[categoryKey];
+            
+            const iconCount = getIconCount();
+            const shuffledIcons = shuffleArray(category);
+            const selectedIcons = shuffledIcons.slice(0, iconCount);
+            
+            gameState.staticIndex = Math.floor(Math.random() * iconCount);
+            gameState.icons = selectedIcons.map((icon, index) => ({
+                icon: icon,
+                originalIcon: icon,
+                color: getRandomItem(colors),
+                originalColor: getRandomItem(colors),
+                isStatic: index === gameState.staticIndex,
+                scale: 1,
+                rotation: 0,
+                opacity: 1
+            }));
+            
+            gameState.icons[gameState.staticIndex].color = gameState.icons[gameState.staticIndex].originalColor;
+        }
+
+        function renderIcons() {
+            const config = gameState.currentConfig;
+            const iconCount = gameState.icons.length;
+            const columns = getGridColumns(iconCount);
+            iconsGrid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+            iconsGrid.innerHTML = '';
+            
+            gameState.icons.forEach((iconData, index) => {
+                const iconElement = document.createElement('div');
+                iconElement.className = 'icon-item';
+                iconElement.dataset.index = index;
+                iconElement.textContent = iconData.icon;
+                iconElement.style.color = iconData.color;
+                iconElement.style.transform = `scale(${iconData.scale}) rotate(${iconData.rotation}deg)`;
+                iconElement.style.opacity = iconData.opacity;
+                iconElement.style.width = `${config.iconSize}px`;
+                iconElement.style.height = `${config.iconSize}px`;
+                iconElement.style.fontSize = config.fontSize;
+                
+                iconElement.addEventListener('click', () => handleIconClick(index));
+                iconsGrid.appendChild(iconElement);
+            });
+        }
+
+        function updateIconDisplay(index) {
+            const iconElements = iconsGrid.querySelectorAll('.icon-item');
+            if (iconElements[index]) {
+                const iconData = gameState.icons[index];
+                iconElements[index].textContent = iconData.icon;
+                iconElements[index].style.color = iconData.color;
+                iconElements[index].style.transform = `scale(${iconData.scale}) rotate(${iconData.rotation}deg)`;
+                iconElements[index].style.opacity = iconData.opacity;
+            }
+        }
+
+        function animateIcons() {
+            const config = gameState.currentConfig;
+            gameState.animationIntervals.forEach(interval => clearInterval(interval));
+            gameState.animationIntervals = [];
+            gameState.changeRounds = 0;
+            
+            message.textContent = '仔细观察，找出静止的图标...';
+            
+            const animationInterval = setInterval(() => {
+                if (gameState.changeRounds >= config.maxRounds) {
+                    clearInterval(animationInterval);
+                    message.textContent = '现在点击那个静止的图标！';
+                    gameState.isPlaying = true;
+                    return;
+                }
+                
+                gameState.icons.forEach((iconData, index) => {
+                    if (!iconData.isStatic) {
+                        const changeType = Math.floor(Math.random() * 4);
+                        
+                        switch (changeType) {
+                            case 0:
+                                if (config.colorChange) {
+                                    iconData.color = getRandomItem(colors);
+                                }
+                                break;
+                            case 1:
+                                iconData.scale = config.scaleRange.min + Math.random() * (config.scaleRange.max - config.scaleRange.min);
+                                break;
+                            case 2:
+                                iconData.rotation = (Math.random() - 0.5) * config.rotationRange;
+                                break;
+                            case 3:
+                                iconData.opacity = config.opacityRange.min + Math.random() * (config.opacityRange.max - config.opacityRange.min);
+                                break;
+                        }
+                        
+                        setTimeout(() => {
+                            if (!iconData.isStatic) {
+                                iconData.scale = 1;
+                                iconData.rotation = 0;
+                                iconData.opacity = 1;
+                                updateIconDisplay(index);
+                            }
+                        }, config.changeDuration);
+                    }
+                    updateIconDisplay(index);
+                });
+                
+                gameState.changeRounds++;
+            }, config.changeInterval);
+            
+            gameState.animationIntervals.push(animationInterval);
+        }
+
+        function handleIconClick(index) {
+            if (!gameState.isPlaying) return;
+            
+            const config = gameState.currentConfig;
+            const iconElements = iconsGrid.querySelectorAll('.icon-item');
+            
+            if (index === gameState.staticIndex) {
+                iconElements[index].classList.add('correct');
+                gameState.isPlaying = false;
+                
+                const levelScore = Math.floor(100 * gameState.level * config.scoreMultiplier);
+                gameState.score += levelScore;
+                scoreDisplay.textContent = gameState.score;
+                
+                successMessage.textContent = `获得 ${levelScore} 分！`;
+                successModal.style.display = 'flex';
+                
+                setTimeout(() => {
+                    successModal.style.display = 'none';
+                    nextLevel();
+                }, 1500);
+            } else {
+                iconElements[index].classList.add('wrong');
+                gameState.isPlaying = false;
+                errorModal.style.display = 'flex';
+            }
+            
+            iconElements.forEach(el => el.classList.add('clicked'));
+        }
+
+        function nextLevel() {
+            gameState.level++;
+            levelDisplay.textContent = gameState.level;
+            startLevel();
+        }
+
+        function startLevel() {
+            gameState.isPlaying = false;
+            gameState.animationIntervals.forEach(interval => clearInterval(interval));
+            gameState.animationIntervals = [];
+            
+            generateIcons();
+            renderIcons();
+            
+            setTimeout(() => {
+                animateIcons();
+            }, 500);
+        }
+
+        function startGame(difficulty) {
+            gameState.difficulty = difficulty || 'easy';
+            gameState.currentConfig = difficultyConfig[gameState.difficulty];
+            gameState.level = 1;
+            gameState.score = 0;
+            levelDisplay.textContent = '1';
+            scoreDisplay.textContent = '0';
+            
+            startScreen.style.display = 'none';
+            gameArea.style.display = 'block';
+            
+            startLevel();
+        }
+
+        function retryLevel() {
+            errorModal.style.display = 'none';
+            
+            gameState.icons.forEach((iconData, index) => {
+                if (!iconData.isStatic) {
+                    iconData.color = iconData.originalColor;
+                    iconData.scale = 1;
+                    iconData.rotation = 0;
+                    iconData.opacity = 1;
+                }
+            });
+            
+            renderIcons();
+            
+            setTimeout(() => {
+                animateIcons();
+            }, 500);
+        }
+
+        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+        difficultyBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const difficulty = btn.dataset.difficulty;
+                startGame(difficulty);
+            });
+        });
+
+        retryBtn.addEventListener('click', retryLevel);
+
+        // ==================== 测试逻辑 ====================
+        const testResults = [];
+        let isRunning = false;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('testLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span style="opacity: 0.6;">[${timestamp}]</span> ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateProgress(percent) {
+            document.getElementById('progressFill').style.width = `${percent}%`;
+        }
+
+        function resetGame() {
+            gameState.animationIntervals.forEach(interval => clearInterval(interval));
+            gameState.animationIntervals = [];
+            gameState.level = 1;
+            gameState.score = 0;
+            levelDisplay.textContent = '1';
+            scoreDisplay.textContent = '0';
+            startScreen.style.display = 'flex';
+            gameArea.style.display = 'none';
+            successModal.style.display = 'none';
+            errorModal.style.display = 'none';
+            document.getElementById('testLog').innerHTML = '<div class="log-entry log-info">游戏已重置，等待测试开始...</div>';
+            document.getElementById('summary').style.display = 'none';
+            updateProgress(0);
+        }
+
+        function waitForCondition(condition, timeout = 8000) {
+            return new Promise((resolve, reject) => {
+                const startTime = Date.now();
+                const interval = setInterval(() => {
+                    if (condition()) {
+                        clearInterval(interval);
+                        resolve();
+                    } else if (Date.now() - startTime > timeout) {
+                        clearInterval(interval);
+                        reject(new Error('Timeout'));
+                    }
+                }, 100);
+            });
+        }
+
+        async function runRound(roundNum) {
+            return new Promise(async (resolve) => {
+                const result = { round: roundNum, status: 'PASS', issues: [] };
+                
+                try {
+                    log(`开始第 ${roundNum} 轮测试...`, 'round');
+                    
+                    await waitForCondition(() => 
+                        gameState.icons && gameState.icons.length > 0, 5000);
+                    
+                    const staticIndex = gameState.staticIndex;
+                    const iconCount = gameState.icons.length;
+                    const level = gameState.level;
+                    const initialScore = gameState.score;
+                    
+                    log(`关卡: ${level} | 图标数量: ${iconCount} | 静止索引: ${staticIndex} | 当前得分: ${initialScore}`, 'info');
+                    
+                    const iconElements = iconsGrid.querySelectorAll('.icon-item');
+                    
+                    if (iconElements.length !== iconCount) {
+                        result.status = 'FAIL';
+                        result.reason = `图标数量不匹配: 渲染${iconElements.length}个, 预期${iconCount}个`;
+                        log(`❌ ${result.reason}`, 'error');
+                        resolve(result);
+                        return;
+                    }
+                    log(`✓ 图标渲染正确 (${iconCount}个)`, 'success');
+                    
+                    await waitForCondition(() => gameState.isPlaying === true, 20000);
+                    log(`✓ 动画完成，进入可点击状态`, 'success');
+                    
+                    const staticIcon = gameState.icons[staticIndex];
+                    const isStaticUnchanged = 
+                        staticIcon.scale === 1 && 
+                        staticIcon.rotation === 0 && 
+                        staticIcon.opacity === 1;
+                    
+                    if (!isStaticUnchanged) {
+                        result.issues.push('静止图标属性发生变化');
+                        log(`⚠️  静止图标属性: 缩放=${staticIcon.scale}, 旋转=${staticIcon.rotation}, 透明度=${staticIcon.opacity}`, 'warning');
+                    } else {
+                        log(`✓ 静止图标保持初始状态`, 'success');
+                    }
+                    
+                    const dynamicChanged = gameState.icons
+                        .filter((_, i) => i !== staticIndex)
+                        .some(icon => icon.color !== icon.originalColor);
+                    
+                    if (!dynamicChanged) {
+                        result.issues.push('动态图标未发生变化');
+                        log(`⚠️  动态图标未检测到颜色变化`, 'warning');
+                    } else {
+                        log(`✓ 动态图标已发生变化`, 'success');
+                    }
+                    
+                    log(`点击静止图标 (索引: ${staticIndex})...`, 'info');
+                    iconElements[staticIndex].click();
+                    
+                    await new Promise(r => setTimeout(r, 500));
+                    
+                    const isSuccessVisible = successModal.style.display === 'flex';
+                    
+                    if (!isSuccessVisible) {
+                        result.status = 'FAIL';
+                        result.reason = '点击正确图标后未显示成功弹窗';
+                        log(`❌ ${result.reason}`, 'error');
+                        resolve(result);
+                        return;
+                    }
+                    log(`✓ 成功弹窗已显示`, 'success');
+                    
+                    await new Promise(r => setTimeout(r, 2000));
+                    
+                    const newLevel = gameState.level;
+                    const newScore = gameState.score;
+                    const config = gameState.currentConfig;
+                    const expectedScore = initialScore + Math.floor(100 * level * config.scoreMultiplier);
+                    
+                    if (newLevel !== level + 1) {
+                        result.issues.push(`关卡未跳转: 预期${level + 1}, 实际${newLevel}`);
+                        log(`⚠️  关卡跳转: 预期 ${level + 1}, 实际 ${newLevel}`, 'warning');
+                    } else {
+                        log(`✓ 关卡正确跳转: ${level} → ${newLevel}`, 'success');
+                    }
+                    
+                    if (newScore !== expectedScore) {
+                        result.issues.push(`得分计算错误: 预期${expectedScore}, 实际${newScore}`);
+                        log(`⚠️  得分计算: 预期 ${expectedScore}, 实际 ${newScore}`, 'warning');
+                    } else {
+                        log(`✓ 得分正确: ${initialScore} + ${Math.floor(100 * level * config.scoreMultiplier)} = ${newScore}`, 'success');
+                    }
+                    
+                    result.level = level;
+                    result.iconCount = iconCount;
+                    result.staticIndex = staticIndex;
+                    result.score = newScore;
+                    
+                    if (result.issues.length > 0) {
+                        result.status = 'PARTIAL';
+                        log(`⚠️  第 ${roundNum} 轮部分通过: ${result.issues.join(', ')}`, 'warning');
+                    } else {
+                        log(`✅ 第 ${roundNum} 轮测试通过！`, 'success');
+                    }
+                    
+                } catch (error) {
+                    result.status = 'FAIL';
+                    result.reason = `测试异常: ${error.message}`;
+                    log(`❌ 第 ${roundNum} 轮测试异常: ${error.message}`, 'error');
+                }
+                
+                resolve(result);
+            });
+        }
+
+        async function startTest() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            document.getElementById('startTestBtn').disabled = true;
+            document.getElementById('testLog').innerHTML = '';
+            document.getElementById('summary').style.display = 'none';
+            testResults.length = 0;
+            updateProgress(0);
+            
+            log('=== 静默寻静自动化测试开始 ===', 'info');
+            log('测试目标: 连续执行7轮游戏，验证静态图标识别、点击判定、关卡跳转、得分计算', 'info');
+            
+            try {
+                log('选择简单难度开始游戏...', 'info');
+                startGame('easy');
+                
+                for (let i = 1; i <= 7; i++) {
+                    const result = await runRound(i);
+                    testResults.push(result);
+                    updateProgress((i / 7) * 100);
+                    
+                    if (i < 7) {
+                        await new Promise(r => setTimeout(r, 500));
+                    }
+                }
+                
+                showSummary();
+                
+            } catch (error) {
+                log(`❌ 测试启动失败: ${error.message}`, 'error');
+            }
+            
+            isRunning = false;
+            document.getElementById('startTestBtn').disabled = false;
+        }
+
+        function showSummary() {
+            const passCount = testResults.filter(r => r.status === 'PASS').length;
+            const partialCount = testResults.filter(r => r.status === 'PARTIAL').length;
+            const failCount = testResults.filter(r => r.status === 'FAIL').length;
+            
+            document.getElementById('totalRounds').textContent = testResults.length;
+            document.getElementById('passCount').textContent = passCount;
+            document.getElementById('partialCount').textContent = partialCount;
+            document.getElementById('failCount').textContent = failCount;
+            
+            const finalResult = document.getElementById('finalResult');
+            if (failCount === 0 && partialCount === 0 && passCount === 7) {
+                finalResult.innerHTML = '🎉 <span class="pass">所有测试完美通过！</span>';
+            } else if (failCount === 0) {
+                finalResult.innerHTML = '✅ <span class="pass">测试通过（存在部分警告）</span>';
+            } else {
+                finalResult.innerHTML = '❌ <span class="fail">存在测试失败</span>';
+            }
+            
+            document.getElementById('summary').style.display = 'block';
+            
+            const rowsDiv = document.getElementById('resultRows');
+            rowsDiv.innerHTML = '';
+            testResults.forEach((r, i) => {
+                const row = document.createElement('div');
+                row.className = 'result-row';
+                
+                let statusIcon = '✅';
+                let statusText = '通过';
+                if (r.status === 'PARTIAL') {
+                    statusIcon = '⚠️';
+                    statusText = `部分通过: ${r.issues ? r.issues.join(', ') : ''}`;
+                } else if (r.status === 'FAIL') {
+                    statusIcon = '❌';
+                    statusText = `失败: ${r.reason || '未知原因'}`;
+                }
+                
+                row.innerHTML = `
+                    <div>${i + 1}</div>
+                    <div>${r.level || '-'}</div>
+                    <div>${r.iconCount || '-'}</div>
+                    <div>${r.score || '-'}</div>
+                    <div>${statusIcon} ${statusText}</div>
+                `;
+                rowsDiv.appendChild(row);
+            });
+            
+            log('', 'info');
+            log('=== 测试结果汇总 ===', 'round');
+            log(`总计: ${passCount}通过, ${partialCount}部分通过, ${failCount}失败`, 'info');
+        }
+    </script>
+</body>
+</html>
